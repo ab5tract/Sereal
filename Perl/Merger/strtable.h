@@ -154,19 +154,36 @@ S_perl_hash_murmur_hash_64b (const unsigned char * const seed, const unsigned ch
 #   define STRTABLE_HASH(str, len) S_perl_hash_murmur_hash_64b(PERL_HASH_SEED, (U8*) (str), (len))
 #endif
 
-#define STRTABLE_MAX_STR_SIZE 0xFFFFFFFF
-#define STRTABLE_ENTRY_STR(tbl, ent) ((tbl)->buf->body_pos + (ent)->offset)
+/* STRTABLE_HASH_WITH_TYPE reserves highest bit for string type i.e. utf8 or nont utf8
+ * value of is_utf8 should be 1 is str is UTF8, 0 oterwise */
+#define STRTABLE_HASH_WITH_TYPE(str, len, is_utf8) (((is_utf8) << 31) | (STRTABLE_HASH((str), (len)) & 0x7FFFFFFF))
 
-#define STRTABLE_ASSERT_ENTRY(tbl, ent) STMT_START {                      \
-    assert((ent) != NULL);                                                \
-    assert((tbl)->buf->body_pos <= STRTABLE_ENTRY_STR((tbl), (ent)));     \
-    assert((tbl)->buf->end      >= STRTABLE_ENTRY_STR((tbl), (ent)));     \
+#define STRTABLE_MAX_STR_SIZE 0xFFFFFFFF
+#define STRTABLE_ENTRY_TAG(tbl, ent) ((tbl)->buf->body_pos + (ent)->tag_offset)
+#define STRTABLE_ENTRY_STR(tbl, ent) ((tbl)->buf->body_pos + (ent)->str_offset)
+
+#define STRTABLE_ASSERT_ENTRY(tbl, ent) STMT_START {                         \
+    assert((ent) != NULL);                                                   \
+    assert((tbl)->buf->body_pos <= STRTABLE_ENTRY_TAG((tbl), (ent)));        \
+    assert((tbl)->buf->end      >= STRTABLE_ENTRY_TAG((tbl), (ent)));        \
 } STMT_END
 
-#define STRTABLE_ASSERT_ENTRY_STR(tbl, ent, str, len) STMT_START {        \
-    assert((ent)->length == (len));                                       \
-    assert((ent)->hash == STRTABLE_HASH((str), (len)));                   \
-    assert(strncmp(STRTABLE_ENTRY_STR((tbl), (ent)), (str), (len)) == 0); \
+#define STRTABLE_ASSERT_ENTRY_TAG(tbl, ent, str, len) STMT_START {           \
+    assert((ent) != NULL);                                                   \
+    assert((ent)->length == (len));                                          \
+    assert((tbl)->buf->body_pos <= STRTABLE_ENTRY_TAG((tbl), (ent)));        \
+    assert((tbl)->buf->end      >= STRTABLE_ENTRY_TAG((tbl), (ent)));        \
+    assert((ent)->hash == STRTABLE_HASH((str), (len)));                      \
+    assert(strncmp(STRTABLE_ENTRY_TAG((tbl), (ent)), (str), (len)) == 0);    \
+} STMT_END
+
+#define STRTABLE_ASSERT_ENTRY_STR(tbl, ent, str, len, is_utf8) STMT_START {  \
+    assert((ent) != NULL);                                                   \
+    assert((ent)->length == (len));                                          \
+    assert((tbl)->buf->body_pos <= STRTABLE_ENTRY_STR((tbl), (ent)));        \
+    assert((tbl)->buf->end      >= STRTABLE_ENTRY_STR((tbl), (ent)));        \
+    assert((ent)->hash == STRTABLE_HASH_WITH_TYPE((str), (len), (is_utf8))); \
+    assert(strncmp(STRTABLE_ENTRY_STR((tbl), (ent)), (str), (len)) == 0);    \
 } STMT_END
 
 typedef struct STRTABLE         STRTABLE_t;
@@ -177,28 +194,33 @@ typedef struct STRTABLE_entry * strtable_entry_ptr;
 struct STRTABLE_entry {
     struct STRTABLE_entry   *next;
 
+    /* if strtable.h is compiled with defined STRTABLE_STORE_TYPE_IN_HASH
+     * it uses the highest bit of hash as string type.
+     * If set - string is UTF8, oterwise it's a binary */
     U32                     hash;
 
     /* length of string at offset inside tbl->buf.
      * Limit to 4 bytes to get more compact struct */
     U32                     length;
 
-    /* offset inside STRTABLE->buf
-     * where tag (STR_UTF8|BINARY|SHORT_BINARY) is located */
-    UV                      offset;
+    /* offset inside STRTABLE->buf pointing to tag
+     * (STR_UTF8|BINARY|SHORT_BINARY) */
+    UV                      tag_offset;
+
+#ifdef STRTABLE_STORE_TYPE_IN_HASH
+    /* offset inside STRTABLE->buf pointing to
+     * first character of the string */
+    UV                      str_offset;
+#endif
 };
+
+#define STRTABLE_ENTRY_SIZE (sizeof(struct STRTABLE_entry) / PTRSIZE)
 
 struct STRTABLE_arena {
     struct STRTABLE_arena   *next;
-#if PTRSIZE == 8
-    struct STRTABLE_entry   array[1023/3]; /* as STRTABLE_entry has 8B + 2*4B + 8B = 3*8B,
-                                            * this magic math makes sure that STRTABLE_arena
-                                            * fits inside two pages (8192 bytes) */
-#else
-    struct STRTABLE_entry   array[1023/5]; /* as STRTABLE_entry has 4B + 2*4B + 8B = 5*4B
-                                            * this magic math make sure that STRTABLE_arena
-                                            * fits inside one page (4096 bytes) */
-#endif
+    /* this magic math makes sure that STRTABLE_arena
+     * fits inside one/two pages (4096/8192 bytes) */
+    struct STRTABLE_entry   array[1023 / STRTABLE_ENTRY_SIZE];
 };
 
 struct STRTABLE {
@@ -214,10 +236,15 @@ struct STRTABLE {
 SRL_STATIC_INLINE STRTABLE_t * STRTABLE_new(const srl_buffer_t *buf);
 SRL_STATIC_INLINE STRTABLE_t * STRTABLE_new_size(const srl_buffer_t *buf, const U8 size_base2_exponent);
 
-/* Caller has to fill offset field in returned STRTABLE_ENTRY_t.
- * Such approach shows better performance, BODY_POS_OFS() seems to be quite expensive
- * to calculate it on every call of STRTABLE_insert */
-SRL_STATIC_INLINE STRTABLE_ENTRY_t * STRTABLE_insert(STRTABLE_t *tbl, const char *str, U32 len, int *ok);
+#ifdef STRTABLE_STORE_TYPE_IN_HASH
+#   define IS_UTF8_INT_ARG    int is_utf8,
+#else
+#   define IS_UTF8_INT_ARG
+#endif
+
+/* Caller has to fill tag_offset and str_offset fields in returned STRTABLE_ENTRY_t.
+ * Such approach shows better performance, BODY_POS_OFS() seems to be quite expensive */
+SRL_STATIC_INLINE STRTABLE_ENTRY_t * STRTABLE_insert(STRTABLE_t *tbl, const char *str, U32 len, IS_UTF8_INT_ARG int *ok);
 
 SRL_STATIC_INLINE void STRTABLE_grow(STRTABLE_t *tbl);
 SRL_STATIC_INLINE void STRTABLE_clear(STRTABLE_t *tbl);
@@ -249,10 +276,14 @@ STRTABLE_new_size(const srl_buffer_t *buf, const U8 size_base2_exponent)
 
 /* lookup key, return if found, otherwise store */
 SRL_STATIC_INLINE STRTABLE_ENTRY_t *
-STRTABLE_insert(STRTABLE_t *tbl, const char *str, U32 len, int *ok)
+STRTABLE_insert(STRTABLE_t *tbl, const char *str, U32 len, IS_UTF8_INT_ARG int *ok)
 {
     STRTABLE_ENTRY_t *tblent;
+#ifdef STRTABLE_STORE_TYPE_IN_HASH
+    const U32 hash = STRTABLE_HASH_WITH_TYPE(str, len, is_utf8);
+#else
     const U32 hash = STRTABLE_HASH(str, len);
+#endif
 
     assert(len <= STRTABLE_MAX_STR_SIZE);
     *ok = 0;
@@ -263,7 +294,11 @@ STRTABLE_insert(STRTABLE_t *tbl, const char *str, U32 len, int *ok)
 
         if (   tblent->hash == hash
             && tblent->length == len
+#ifdef STRTABLE_STORE_TYPE_IN_HASH
             && strncmp(STRTABLE_ENTRY_STR(tbl, tblent), str, len) == 0
+#else
+            && strncmp(STRTABLE_ENTRY_TAG(tbl, tblent), str, len) == 0
+#endif
         ) {
             *ok = 1;
             return tblent;
@@ -289,7 +324,10 @@ STRTABLE_insert(STRTABLE_t *tbl, const char *str, U32 len, int *ok)
     /* tblent->offset has to be set by caller,
      * but assign tag_offset and str_offset to invalid value
      * in order to suppress valgrind warnings about uninitalized memory */
-    tblent->offset = (UV) -1;
+    tblent->tag_offset = (UV) -1;
+#ifdef STRTABLE_STORE_TYPE_IN_HASH
+    tblent->str_offset = (UV) -1;
+#endif
     tblent->hash = hash;
     tblent->length = len;
     tblent->next = tbl->tbl_ary[entry];
