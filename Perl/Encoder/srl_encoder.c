@@ -46,10 +46,15 @@ extern "C" {
 #define HAS_HV_BACKREFS
 #endif
 
+#ifndef STRTABLE_STORE_TYPE_IN_HASH
+#    define STRTABLE_STORE_TYPE_IN_HASH 1
+#endif
+
 #include "srl_protocol.h"
 #include "srl_encoder.h"
 #include "srl_common.h"
 #include "ptable.h"
+#include "strtable.h"
 #include "srl_buffer.h"
 #include "srl_compress.h"
 
@@ -97,7 +102,7 @@ SRL_STATIC_INLINE PTABLE_t *srl_init_string_hash(srl_encoder_t *enc);
 SRL_STATIC_INLINE PTABLE_t *srl_init_ref_hash(srl_encoder_t *enc);
 SRL_STATIC_INLINE PTABLE_t *srl_init_freezeobj_svhash(srl_encoder_t *enc);
 SRL_STATIC_INLINE PTABLE_t *srl_init_weak_hash(srl_encoder_t *enc);
-SRL_STATIC_INLINE HV *srl_init_string_deduper_hv(pTHX_ srl_encoder_t *enc);
+SRL_STATIC_INLINE STRTABLE_t *srl_init_string_deduper_hash(pTHX_ srl_encoder_t *enc);
 
 /* Note: This returns an encoder struct pointer because it will
  *       clone the current encoder struct if it's dirty. That in
@@ -107,9 +112,9 @@ SRL_STATIC_INLINE HV *srl_init_string_deduper_hv(pTHX_ srl_encoder_t *enc);
  *       freeing it. */
 SRL_STATIC_INLINE srl_encoder_t *srl_dump_data_structure(pTHX_ srl_encoder_t *enc, SV *src, SV *user_header_src);
 
-#define SRL_GET_STR_DEDUPER_HV(enc) ( (enc)->string_deduper_hv == NULL          \
-                                    ? srl_init_string_deduper_hv(aTHX_ enc)     \
-                                   : (enc)->string_deduper_hv )
+#define SRL_GET_STR_DEDUPER_HASH(enc) ( (enc)->string_deduper_hash == NULL         \
+                                     ? srl_init_string_deduper_hash(aTHX_ enc)     \
+                                     : (enc)->string_deduper_hash )
 
 #define SRL_GET_STR_PTR_SEENHASH(enc) ( (enc)->str_seenhash == NULL     \
                                     ? srl_init_string_hash(enc)         \
@@ -272,8 +277,8 @@ srl_clear_seen_hashes(pTHX_ srl_encoder_t *enc)
         PTABLE_clear(enc->str_seenhash);
     if (enc->weak_seenhash != NULL)
         PTABLE_clear(enc->weak_seenhash);
-    if (enc->string_deduper_hv != NULL)
-        hv_clear(enc->string_deduper_hv);
+    if (enc->string_deduper_hash != NULL)
+        STRTABLE_clear(enc->string_deduper_hash);
 }
 
 void
@@ -315,8 +320,8 @@ srl_destroy_encoder(pTHX_ srl_encoder_t *enc)
         PTABLE_free(enc->str_seenhash);
     if (enc->weak_seenhash != NULL)
         PTABLE_free(enc->weak_seenhash);
-    if (enc->string_deduper_hv != NULL)
-        SvREFCNT_dec(enc->string_deduper_hv);
+    if (enc->string_deduper_hash != NULL)
+        STRTABLE_free(enc->string_deduper_hash);
 
     SvREFCNT_dec(enc->sereal_string_sv);
 
@@ -352,7 +357,7 @@ srl_empty_encoder_struct(pTHX)
     enc->str_seenhash = NULL;
     enc->ref_seenhash = NULL;
     enc->snappy_workmem = NULL;
-    enc->string_deduper_hv = NULL;
+    enc->string_deduper_hash = NULL;
 
     enc->freezeobj_svhash = NULL;
     enc->sereal_string_sv = NULL;
@@ -583,11 +588,11 @@ srl_init_freezeobj_svhash(srl_encoder_t *enc)
     return enc->freezeobj_svhash;
 }
 
-SRL_STATIC_INLINE HV *
-srl_init_string_deduper_hv(pTHX_ srl_encoder_t *enc)
+SRL_STATIC_INLINE STRTABLE_t *
+srl_init_string_deduper_hash(pTHX_ srl_encoder_t *enc)
 {
-    enc->string_deduper_hv = newHV();
-    return enc->string_deduper_hv;
+    enc->string_deduper_hash = STRTABLE_new(&enc->buf);
+    return enc->string_deduper_hash;
 }
 
 void
@@ -1269,33 +1274,46 @@ SRL_STATIC_INLINE void
 srl_dump_svpv(pTHX_ srl_encoder_t *enc, SV *src)
 {
     STRLEN len;
+    U32 is_utf8 = SvUTF8(src) ? 1 : 0; // is_utf8 should either 1 or 0
     const char * const str= SvPV(src, len);
-    if ( SRL_ENC_HAVE_OPTION(enc, SRL_F_DEDUPE_STRINGS) && len > 3 ) {
-        HV *string_deduper_hv= SRL_GET_STR_DEDUPER_HV(enc);
-        HE *dupe_offset_he= hv_fetch_ent(string_deduper_hv, src, 1, 0);
-        if (!dupe_offset_he) {
-            croak("out of memory (hv_fetch_ent returned NULL)");
-        } else {
+    if ( SRL_ENC_HAVE_OPTION(enc, SRL_F_DEDUPE_STRINGS) && len > 3) {
+        int ok = 0;
+        strtable_ptr tbl = SRL_GET_STR_DEDUPER_HASH(enc);
+        strtable_entry_ptr dupe_offset_entry
+            = len <= STRTABLE_MAX_STR_SIZE // strtable supports <= 4GB fields
+            ? STRTABLE_insert(tbl, (const char *) str, (U32) len, is_utf8, &ok)
+            : NULL;
+
+        if (ok) {
+            // duplicate found
+            UV offset = dupe_offset_entry->tag_offset;
             const char out_tag= SRL_ENC_HAVE_OPTION(enc, SRL_F_ALIASED_DEDUPE_STRINGS)
                                 ? SRL_HDR_ALIAS
                                 : SRL_HDR_COPY;
-            SV *ofs_sv= HeVAL(dupe_offset_he);
-            if (SvIOK(ofs_sv)) {
-                /* emit copy or alias */
-                if (out_tag == SRL_HDR_ALIAS)
-                    SRL_SET_TRACK_FLAG(*(enc->buf.body_pos + SvUV(ofs_sv)));
-                srl_buf_cat_varint(aTHX_ &enc->buf, out_tag, SvIV(ofs_sv));
-                return;
-            } else if (SvUOK(ofs_sv)) {
-                srl_buf_cat_varint(aTHX_ &enc->buf, out_tag, SvUV(ofs_sv));
-                return;
-            } else {
-                /* start tracking this string */
-                sv_setuv(ofs_sv, (UV)BODY_POS_OFS(&enc->buf));
-            }
+
+            if (out_tag == SRL_HDR_ALIAS)
+                SRL_SET_TRACK_FLAG(*(enc->buf.body_pos + offset));
+
+            srl_buf_cat_varint(aTHX_ &enc->buf, out_tag, offset);
+        } else {
+            /* first time meet the string */
+
+            /* store offset to tag which will be created by srl_dump_pv */
+            dupe_offset_entry->tag_offset = BODY_POS_OFS(&enc->buf);
+            STRTABLE_ASSERT_ENTRY(tbl, dupe_offset_entry);
+
+            srl_dump_pv(aTHX_ enc, str, len, SvUTF8(src));
+
+            /* Store offset to string itself. When function exits from
+             * srl_dump_pv() buf->pos points to last character of the string.
+             * BODY_POS_OFS(&enc->buf) - len gives pointer to first
+             * character the string */
+            dupe_offset_entry->str_offset = BODY_POS_OFS(&enc->buf) - len;
+            STRTABLE_ASSERT_ENTRY_STR(tbl, dupe_offset_entry, str, len, is_utf8);
         }
+    } else {
+        srl_dump_pv(aTHX_ enc, str, len, is_utf8);
     }
-    srl_dump_pv(aTHX_ enc, str, len, SvUTF8(src));
 }
 
 SRL_STATIC_INLINE void
