@@ -3,7 +3,43 @@
  */
 
 /*
- * This is a customized version of the pointer table implementation in sv.c
+ * This is a customized version of pointer table (ptable) from sv.c.
+ * It's designed only for one purpose - deduplicate strings. Therefore,
+ * STRTABLE_insert() function is provided only. The function operates
+ * according to following algorithm:
+ * - if passed string is found in the hash table - return value
+ * - if the string it not found, add it to the table.
+ *
+ * Special effort is done to avoid copying strings. Instead of storing
+ * string content, the table stores offset to a string inside underlying
+ * buffer (srl_buffer_t).
+ *
+ * Also, table works in two modes which is controlled by
+ * STRTABLE_STORE_TYPE_IN_HASH macro.
+ *
+ * if STRTABLE_STORE_TYPE_IN_HASH is defined (true for Sereal::Encoder)
+ * an hash entry contains two offsets a) offset to tag and b) offset
+ * to string. This is needed because when encoder emits COPY tag it
+ * needs tag's offset. But when hash table wants to lookup a string it
+ * need to compare actual string content (i.e. str_offset is required).
+ * For example:
+ *
+ *   SHORT_BINARY_11 test_string
+ *   ^ tag_offset    ^ str_offset
+ *
+ *   STR_UTF8 varint test_string
+ *   ^ tag_offset    ^ str_offset
+ *
+ * The highest bit of hash is used to distinguis between binary
+ * and UTF8 strings. See STRTABLE_HASH_WITH_TYPE and comments to it.
+ *
+ * Sereal::Merger employes the second mode of strtable when
+ * STRTABLE_STORE_TYPE_IN_HASH is undefined. In this mode hash entry
+ * contain only one offset - to tag. As result a string is hashed
+ * together with its tag and varint (is needed). Distinguising
+ * between binary and UTF8 strings come for free in this case. So,
+ * no bits are reserved in hash.
+ *
  * The hash functions are taken from hv_func.h
  */
 
@@ -146,16 +182,19 @@ S_perl_hash_murmur_hash_64b (const unsigned char * const seed, const unsigned ch
 
 /* hash function has to return 4 bytes long value i.e. U32 */
 
-#if PTRSIZE == 8
-#   define PERL_HASH_SEED_BYTES 8
-#   define STRTABLE_HASH(str, len) S_perl_hash_murmur_hash_64a(PERL_HASH_SEED, (U8*) (str), (len))
-#else
-#   define PERL_HASH_SEED_BYTES 8
-#   define STRTABLE_HASH(str, len) S_perl_hash_murmur_hash_64b(PERL_HASH_SEED, (U8*) (str), (len))
+#ifndef STRTABLE_HASH
+#   if PTRSIZE == 8
+#       define PERL_HASH_SEED_BYTES 8
+#       define STRTABLE_HASH(str, len) S_perl_hash_murmur_hash_64a(PERL_HASH_SEED, (U8*) (str), (len))
+#   else
+#       define PERL_HASH_SEED_BYTES 8
+#       define STRTABLE_HASH(str, len) S_perl_hash_murmur_hash_64b(PERL_HASH_SEED, (U8*) (str), (len))
+#   endif
 #endif
 
-/* STRTABLE_HASH_WITH_TYPE reserves highest bit for string type i.e. utf8 or nont utf8
- * value of is_utf8 should be 1 is str is UTF8, 0 oterwise */
+/* STRTABLE_HASH_WITH_TYPE reserves highest bit for string type i.e. utf8 or non utf8.
+ * Value of is_utf8 should be 1 if UTF8, 0 otherwise.
+ * This trick reduces available space of hashes by factor of 2.*/
 #define STRTABLE_HASH_WITH_TYPE(str, len, is_utf8) (((is_utf8) << 31) | (STRTABLE_HASH((str), (len)) & 0x7FFFFFFF))
 
 #define STRTABLE_MAX_STR_SIZE 0xFFFFFFFF
@@ -202,13 +241,12 @@ struct STRTABLE_entry {
      * Limit to 4 bytes to get more compact struct */
     U32                     length;
 
-    /* offset inside STRTABLE->buf pointing to tag
-     * (STR_UTF8|BINARY|SHORT_BINARY) */
+    /* offset inside STRTABLE->buf pointing to one of following tags
+     * STR_UTF8, BINARY, SHORT_BINARY */
     UV                      tag_offset;
 
 #ifdef STRTABLE_STORE_TYPE_IN_HASH
-    /* offset inside STRTABLE->buf pointing to
-     * first character of the string */
+    /* offset inside STRTABLE->buf pointing to first character of the string */
     UV                      str_offset;
 #endif
 };
@@ -241,8 +279,7 @@ SRL_STATIC_INLINE STRTABLE_t * STRTABLE_new_size(const srl_buffer_t *buf, const 
 #   define IS_UTF8_INT_ARG
 #endif
 
-/* Caller has to fill tag_offset and str_offset fields in returned STRTABLE_ENTRY_t.
- * Such approach shows better performance, BODY_POS_OFS() seems to be quite expensive */
+/* Caller has to fill tag_offset and str_offset fields in returned struct */
 SRL_STATIC_INLINE STRTABLE_ENTRY_t * STRTABLE_insert(STRTABLE_t *tbl, const char *str, U32 len, IS_UTF8_INT_ARG int *ok);
 
 SRL_STATIC_INLINE void STRTABLE_grow(STRTABLE_t *tbl);
