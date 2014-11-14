@@ -123,11 +123,12 @@ extern "C" {
 #include "srl_protocol.h"
 #include "srl_inline.h"
 #include "srl_mrg_error.h"
-#include "../Encoder/srl_buffer.h"
+#include "srl_buffer.h"
 #include "../Encoder/srl_compress.h"
 
 typedef struct PTABLE * ptable_ptr;
 typedef PTABLE_ENTRY_t *ptable_entry_ptr;
+typedef struct STRTABLE * strtable_ptr;
 
 /* predeclare all our subs so we have one definitive authority for their signatures */
 SRL_STATIC_INLINE UV srl_read_varint_uv_safe(pTHX_ srl_buffer_t *buf);
@@ -783,7 +784,7 @@ srl_merge_binary_utf8(pTHX_ srl_merger_t *mrg, ptable_entry_ptr ptable_entry)
 
     if (ok) {
         // issue COPY tag
-        srl_buf_cat_varint(aTHX_ &mrg->obuf, SRL_HDR_COPY, strtable_entry->offset);
+        srl_buf_cat_varint(aTHX_ &mrg->obuf, SRL_HDR_COPY, strtable_entry->tag_offset);
         mrg->ibuf.pos += length;
 
         if (expect_false(ptable_entry)) {
@@ -791,15 +792,15 @@ srl_merge_binary_utf8(pTHX_ srl_merger_t *mrg, ptable_entry_ptr ptable_entry)
             // This is needed because if any of following tags will reffer to
             // this one as COPY we need to point them to original string.
             // By Sereal spec a COPY tag cannot reffer to another COPY tag.
-            ptable_entry->value = INT2PTR(void *, strtable_entry->offset);
+            ptable_entry->value = INT2PTR(void *, strtable_entry->tag_offset);
         }
     } else if (strtable_entry) {
         mrg->ibuf.pos = (char*) tag_ptr;
-        strtable_entry->offset = BODY_POS_OFS(&mrg->obuf);
+        strtable_entry->tag_offset = BODY_POS_OFS(&mrg->obuf);
         srl_buf_copy_content_nocheck(aTHX_ mrg, total_length);
 
         STRTABLE_ASSERT_ENTRY(mrg->string_deduper_tbl, strtable_entry);
-        STRTABLE_ASSERT_ENTRY_STR(mrg->string_deduper_tbl, strtable_entry,
+        STRTABLE_ASSERT_ENTRY_TAG(mrg->string_deduper_tbl, strtable_entry,
                                   mrg->ibuf.pos - total_length, total_length);
     } else {
         mrg->ibuf.pos = (char*) tag_ptr;
@@ -826,7 +827,7 @@ srl_merge_short_binary(pTHX_ srl_merger_t *mrg, const U8 tag, ptable_entry_ptr p
 
     if (ok) {
         // issue COPY tag
-        srl_buf_cat_varint(aTHX_ &mrg->obuf, SRL_HDR_COPY, strtable_entry->offset);
+        srl_buf_cat_varint(aTHX_ &mrg->obuf, SRL_HDR_COPY, strtable_entry->tag_offset);
         mrg->ibuf.pos += length;
 
         if (expect_false(ptable_entry)) {
@@ -834,14 +835,14 @@ srl_merge_short_binary(pTHX_ srl_merger_t *mrg, const U8 tag, ptable_entry_ptr p
             // This is needed because if any of following tags will reffer to
             // this one as COPY we need to point them to original string.
             // By Sereal spec a COPY tag cannot reffer to another COPY tag
-            ptable_entry->value = INT2PTR(void *, strtable_entry->offset);
+            ptable_entry->value = INT2PTR(void *, strtable_entry->tag_offset);
         }
     } else if (strtable_entry) {
-        strtable_entry->offset = BODY_POS_OFS(&mrg->obuf);
+        strtable_entry->tag_offset = BODY_POS_OFS(&mrg->obuf);
         srl_buf_copy_content_nocheck(aTHX_ mrg, length);
 
         STRTABLE_ASSERT_ENTRY(mrg->string_deduper_tbl, strtable_entry);
-        STRTABLE_ASSERT_ENTRY_STR(mrg->string_deduper_tbl, strtable_entry, mrg->ibuf.pos - length, length);
+        STRTABLE_ASSERT_ENTRY_TAG(mrg->string_deduper_tbl, strtable_entry, mrg->ibuf.pos - length, length);
     } else {
         srl_buf_copy_content_nocheck(aTHX_ mrg, length);
     }
@@ -950,7 +951,7 @@ srl_merge_object(pTHX_ srl_merger_t *mrg, const U8 objtag)
         if (ok) {
             // issue OBJECTV || OBJECTV_FREEZE tag
             U8 outtag = (objtag == SRL_HDR_OBJECT ? SRL_HDR_OBJECTV : SRL_HDR_OBJECTV_FREEZE);
-            srl_buf_cat_varint(aTHX_ &mrg->obuf, outtag, strtable_entry->offset);
+            srl_buf_cat_varint(aTHX_ &mrg->obuf, outtag, strtable_entry->tag_offset);
             mrg->ibuf.pos += length;
 
             if (expect_false(ptable_entry)) {
@@ -958,18 +959,18 @@ srl_merge_object(pTHX_ srl_merger_t *mrg, const U8 objtag)
                 // This is needed because if any of following tags will reffer to
                 // this one as COPY we need to point them to original string.
                 // By Sereal spec a COPY tag cannot reffer to another COPY tag.
-                ptable_entry->value = INT2PTR(void *, strtable_entry->offset);
+                ptable_entry->value = INT2PTR(void *, strtable_entry->tag_offset);
             }
         } else if (strtable_entry) {
             // issue OBJECT tag and update strtable entry
             srl_buf_cat_char_nocheck(&mrg->obuf, objtag);
 
             mrg->ibuf.pos = (char*) strtag_ptr; // reset input buffer to strta
-            strtable_entry->offset = BODY_POS_OFS(&mrg->obuf);
+            strtable_entry->tag_offset = BODY_POS_OFS(&mrg->obuf);
             srl_buf_copy_content_nocheck(aTHX_ mrg, total_length);
 
             STRTABLE_ASSERT_ENTRY(mrg->classname_deduper_tbl, strtable_entry);
-            STRTABLE_ASSERT_ENTRY_STR(mrg->classname_deduper_tbl, strtable_entry,
+            STRTABLE_ASSERT_ENTRY_TAG(mrg->classname_deduper_tbl, strtable_entry,
                                       mrg->ibuf.pos - total_length, total_length);
         } else {
             // issue OBJECT tag
@@ -1040,7 +1041,7 @@ srl_lookup_string(pTHX_ srl_merger_t *mrg, const char *src, STRLEN len, int *ok)
 
     if (*ok) {
         SRL_MERGER_TRACE("srl_lookup_string: got duplicate '%.*s' target %lld",
-                         (int) len, src, ent->offset);
+                         (int) len, src, ent->tag_offset);
     } else {
         SRL_MERGER_TRACE("srl_lookup_string: not found duplicate '%.*s'",
                          (int) len, src);
@@ -1061,7 +1062,7 @@ srl_lookup_classname(pTHX_ srl_merger_t *mrg, const char *src, STRLEN len, int *
 
     if (*ok) {
         SRL_MERGER_TRACE("srl_lookup_classname: got duplicate '%.*s' target %lld",
-                         (int) len, src, ent->offset);
+                         (int) len, src, ent->tag_offset);
     } else {
         SRL_MERGER_TRACE("srl_lookup_classname: not found duplicate '%.*s'",
                          (int) len, src);

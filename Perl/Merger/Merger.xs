@@ -6,7 +6,7 @@
 #include "srl_common.h"
 #include "srl_merger.h"
 #include "srl_protocol.h"
-#include "../Encoder/srl_buffer.h"
+#include "srl_buffer.h"
 #include "strtable.h"
 
 /* Generated code for exposing C constants to Perl */
@@ -96,7 +96,7 @@ test()
       buf.pos += len;
 
       ent = STRTABLE_insert(tbl, testset[i], len, &found);
-      ent->offset = BODY_POS_OFS(&buf) - len;
+      ent->tag_offset = BODY_POS_OFS(&buf) - len;
 
       printf("%sok %u - insert %.*s\n", found ? "not " : "", (unsigned int)(1+i), (int)len, testset[i]);
       if (found) abort();
