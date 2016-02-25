@@ -1,5 +1,89 @@
 use v6;
 
+enum SRL_HDR is export(:Constants) (
+    SRL_HDR_ALIAS               => 46,
+    SRL_HDR_ARRAY               => 43,
+    SRL_HDR_ARRAYREF            => 64,
+    SRL_HDR_ARRAYREF_HIGH       => 79,
+    SRL_HDR_ARRAYREF_LOW        => 64,
+    SRL_HDR_BINARY              => 38,
+    SRL_HDR_CANONICAL_UNDEF     => 57,
+    SRL_HDR_COPY                => 47,
+    SRL_HDR_DOUBLE              => 35,
+    SRL_HDR_EXTEND              => 62,
+    SRL_HDR_FALSE               => 58,
+    SRL_HDR_FLOAT               => 34,
+    SRL_HDR_HASH                => 42,
+    SRL_HDR_HASHREF             => 80,
+    SRL_HDR_HASHREF_HIGH        => 95,
+    SRL_HDR_HASHREF_LOW         => 80,
+    SRL_HDR_LONG_DOUBLE         => 36,
+    SRL_HDR_MANY                => 60,
+    SRL_HDR_NEG                 => 16,
+    SRL_HDR_NEG_HIGH            => 31,
+    SRL_HDR_NEG_LOW             => 16,
+    SRL_HDR_OBJECT              => 44,
+    SRL_HDR_OBJECTV             => 45,
+    SRL_HDR_OBJECTV_FREEZE      => 51,
+    SRL_HDR_OBJECT_FREEZE       => 50,
+    SRL_HDR_PACKET_START        => 61,
+    SRL_HDR_PAD                 => 63,
+    SRL_HDR_POS                 => 0,
+    SRL_HDR_POS_HIGH            => 15,
+    SRL_HDR_POS_LOW             => 0,
+    SRL_HDR_REFN                => 40,
+    SRL_HDR_REFP                => 41,
+    SRL_HDR_REGEXP              => 49,
+    SRL_HDR_RESERVED            => 52,
+    SRL_HDR_RESERVED_HIGH       => 56,
+    SRL_HDR_RESERVED_LOW        => 52,
+    SRL_HDR_SHORT_BINARY        => 96,
+    SRL_HDR_SHORT_BINARY_HIGH   => 127,
+    SRL_HDR_SHORT_BINARY_LOW    => 96,
+    SRL_HDR_STR_UTF8            => 39,
+    SRL_HDR_TRACK_FLAG          => 128,
+    SRL_HDR_TRUE                => 59,
+    SRL_HDR_UNDEF               => 37,
+    SRL_HDR_VARINT              => 32,
+    SRL_HDR_WEAKEN              => 48,
+    SRL_HDR_ZIGZAG              => 33,
+);
+
+constant SRL_MAGIC_STRING is export(:Constants)                 = "=srl".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT is export(:Constants)         = "=\x[F3]rl".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8 is export(:Constants)    = "\x[C3]\x[B3]rl".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UINT_BE is export(:Constants) = "1039364716";
+constant SRL_MAGIC_STRING_HIGHBIT_UINT_LE is export(:Constants) = "1819472701";
+constant SRL_MAGIC_STRING_UINT_BE is export(:Constants)         = "1030976108";
+constant SRL_MAGIC_STRING_UINT_LE is export(:Constants)         = "1819439933";
+constant SRL_MAGIC_STRLEN is export(:Constants)                 = 4;
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_BE is export(:Constants) = "1036235634";
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_LE is export(:Constants) = "1924383549";
+
+enum SRL_MASK is export(:Constants) (
+    SRL_MASK_ARRAYREF_COUNT     => 15,
+    SRL_MASK_HASHREF_COUNT      => 15,
+    SRL_MASK_SHORT_BINARY_LEN   => 31,
+);
+
+enum SRL_PROTOCOL is export(:Constants) (
+    SRL_PROTOCOL_ENCODING_MASK                  => 240,
+    SRL_PROTOCOL_ENCODING_RAW                   => 0,
+    SRL_PROTOCOL_ENCODING_SNAPPY                => 16,
+    SRL_PROTOCOL_ENCODING_SNAPPY_INCREMENTAL    => 32,
+    SRL_PROTOCOL_ENCODING_ZLIB                  => 48,
+    SRL_PROTOCOL_HDR_CONTINUE                   => 8,
+    SRL_PROTOCOL_HDR_USER_DATA                  => 1,
+    SRL_PROTOCOL_VERSION                        => 3,
+    SRL_PROTOCOL_VERSION_BITS                   => 4,
+    SRL_PROTOCOL_VERSION_MASK                   => 15
+);
+
+constant SRL_NEG_MIN_SIZE is export(:Constants) = 16;
+constant SRL_POS_MAX_SIZE is export(:Constants) = 15;
+
+# NOTE: these are *not* actually auto-generated. They have been copied
+#       from the auto-generated output found in the Perl 5 version of this module.
 our @TAG-INFO-ARRAY is export = (
   # autoupdated by author_tools/update_from_header.pl do not modify directly!
   {
