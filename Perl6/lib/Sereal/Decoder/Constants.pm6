@@ -1,5 +1,7 @@
 use v6;
 
+unit module Sereal::Decoder::Constants;
+
 enum SRL_HDR is export(:Constants) (
     SRL_HDR_ALIAS               => 46,
     SRL_HDR_ARRAY               => 43,
@@ -49,17 +51,6 @@ enum SRL_HDR is export(:Constants) (
     SRL_HDR_ZIGZAG              => 33,
 );
 
-constant SRL_MAGIC_STRING is export(:Constants)                 = "=srl".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT is export(:Constants)         = "=\x[F3]rl".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT_UTF8 is export(:Constants)    = "\x[C3]\x[B3]rl".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT_UINT_BE is export(:Constants) = "1039364716".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT_UINT_LE is export(:Constants) = "1819472701".encode('latin-1');
-constant SRL_MAGIC_STRING_UINT_BE is export(:Constants)         = "1030976108".encode('latin-1');
-constant SRL_MAGIC_STRING_UINT_LE is export(:Constants)         = "1819439933".encode('latin-1');
-constant SRL_MAGIC_STRLEN is export(:Constants)                 = 4;
-constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_BE is export(:Constants) = "1036235634".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_LE is export(:Constants) = "1924383549".encode('latin-1');
-
 enum SRL_MASK is export(:Constants) (
     SRL_MASK_ARRAYREF_COUNT     => 15,
     SRL_MASK_HASHREF_COUNT      => 15,
@@ -81,6 +72,18 @@ enum SRL_PROTOCOL is export(:Constants) (
 
 constant SRL_NEG_MIN_SIZE is export(:Constants) = 16;
 constant SRL_POS_MAX_SIZE is export(:Constants) = 15;
+
+constant SRL_MAGIC_STRING is export(:Constants)                 = "=srl".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT is export(:Constants)         = "=\x[F3]rl".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8 is export(:Constants)    = "\x[C3]\x[B3]rl".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UINT_BE is export(:Constants) = "1039364716".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UINT_LE is export(:Constants) = "1819472701".encode('latin-1');
+constant SRL_MAGIC_STRING_UINT_BE is export(:Constants)         = "1030976108".encode('latin-1');
+constant SRL_MAGIC_STRING_UINT_LE is export(:Constants)         = "1819439933".encode('latin-1');
+constant SRL_MAGIC_STRLEN is export(:Constants)                 = 4;
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_BE is export(:Constants) = "1036235634".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_LE is export(:Constants) = "1924383549".encode('latin-1');
+
 
 # NOTE: these are *not* actually auto-generated. They have been copied
 #       from the auto-generated output found in the Perl 5 version of this module.
