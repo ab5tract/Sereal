@@ -21,4 +21,6 @@ subtest {
     ok SRL_MAGIC_STRING_HIGHBIT eq "=\x[F3]rl".encode('latin-1'), 'SRL_MAGIC_STRING_HIGHBIT is present and has the right value';
 }, 'Sereal::Decoder::Constants exports a bunch of constants when asked to';
 
-ok looks-like-sereal('=srl'.encode('latin-1')), "looks-like-sereal returns True";
+ok looks-like-sereal('=srl'.encode('latin-1')), "looks-like-sereal returns True (=srl)";
+ok looks-like-sereal("=\x[F3]rl".encode('latin-1')), 'looks-like-sereal returns True (=\x[F3]rl)';
+throws-like { looks-like-sereal("\x[C3]\x[B3]rl".encode('latin-1')) }, Exception, message => /'UTF-8'/;
