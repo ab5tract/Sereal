@@ -9,7 +9,7 @@ enum SRL_HDR is export(:Constants) (
     SRL_HDR_ARRAYREF_HIGH       => 79,
     SRL_HDR_ARRAYREF_LOW        => 64,
     SRL_HDR_BINARY              => 38,
-    SRL_HDR_CANONICAL_UNDEF     => 57,
+    SRL_HDR_CANONICAL_Nil     => 57,
     SRL_HDR_COPY                => 47,
     SRL_HDR_DOUBLE              => 35,
     SRL_HDR_EXTEND              => 62,
@@ -45,7 +45,7 @@ enum SRL_HDR is export(:Constants) (
     SRL_HDR_STR_UTF8            => 39,
     SRL_HDR_TRACK_FLAG          => 128,
     SRL_HDR_TRUE                => 59,
-    SRL_HDR_UNDEF               => 37,
+    SRL_HDR_Nil               => 37,
     SRL_HDR_VARINT              => 32,
     SRL_HDR_WEAKEN              => 48,
     SRL_HDR_ZIGZAG              => 33,
@@ -84,6 +84,85 @@ constant SRL_MAGIC_STRLEN is export(:Constants)                 = 4;
 constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_BE is export(:Constants) = "1036235634".encode('latin-1');
 constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_LE is export(:Constants) = "1924383549".encode('latin-1');
 
+
+constant SRL_F_DECODER_ALIAS_CHECK_FLAGS is export(:Constants)      = 28672;
+constant SRL_F_DECODER_ALIAS_SMALLINT is export(:Constants)         = 4096;
+constant SRL_F_DECODER_ALIAS_VARINT is export(:Constants)           = 8192;
+constant SRL_F_DECODER_DECOMPRESS_SNAPPY is export(:Constants)      = 8;
+constant SRL_F_DECODER_DECOMPRESS_ZLIB is export(:Constants)        = 16;
+constant SRL_F_DECODER_DESTRUCTIVE_INCREMENTAL is export(:Constants) = 1024;
+constant SRL_F_DECODER_DIRTY is export(:Constants)                  = 2;
+constant SRL_F_DECODER_NEEDS_FINALIZE is export(:Constants)         = 4;
+constant SRL_F_DECODER_NO_BLESS_OBJECTS is export(:Constants)       = 512;
+constant SRL_F_DECODER_PROTOCOL_V1 is export(:Constants)            = 2048;
+constant SRL_F_DECODER_READONLY_FLAGS is export(:Constants)         = 98304;
+constant SRL_F_DECODER_REFUSE_OBJECTS is export(:Constants)         = 128;
+constant SRL_F_DECODER_REFUSE_SNAPPY is export(:Constants)          = 32;
+constant SRL_F_DECODER_REFUSE_ZLIB is export(:Constants)            = 64;
+constant SRL_F_DECODER_REUSE is export(:Constants)                  = 1;
+constant SRL_F_DECODER_SET_READONLY is export(:Constants)           = 32768;
+constant SRL_F_DECODER_SET_READONLY_SCALARS is export(:Constants)   = 65536;
+constant SRL_F_DECODER_USE_Nil is export(:Constants)              = 16384;
+constant SRL_F_DECODER_VALIDATE_UTF8 is export(:Constants)          = 256;
+constant SRL_F_DECODER_VOLATILE_FLAGS is export(:Constants)         = 2078;
+constant _FLAG_NAME is export(:Constants) = [
+                  'REUSE',
+                  'DIRTY',
+                  'NEEDS_FINALIZE',
+                  'DECOMPRESS_SNAPPY',
+                  'DECOMPRESS_ZLIB',
+                  'REFUSE_SNAPPY',
+                  'REFUSE_ZLIB',
+                  'REFUSE_OBJECTS',
+                  'VALIDATE_UTF8',
+                  'NO_BLESS_OBJECTS',
+                  'DESTRUCTIVE_INCREMENTAL',
+                  'PROTOCOL_V1',
+                  'ALIAS_SMALLINT',
+                  'ALIAS_VARINT',
+                  'USE_Nil',
+                  'SET_READONLY',
+                  'SET_READONLY_SCALARS'
+                ];
+constant _FLAG_NAME_STATIC is export(:Constants) = [
+                              'REUSE',
+                              Nil,
+                              Nil,
+                              Nil,
+                              Nil,
+                              'REFUSE_SNAPPY',
+                              'REFUSE_ZLIB',
+                              'REFUSE_OBJECTS',
+                              'VALIDATE_UTF8',
+                              'NO_BLESS_OBJECTS',
+                              'DESTRUCTIVE_INCREMENTAL',
+                              Nil,
+                              'ALIAS_SMALLINT',
+                              'ALIAS_VARINT',
+                              'USE_Nil',
+                              'SET_READONLY',
+                              'SET_READONLY_SCALARS'
+                            ];
+
+constant _FLAG_NAME_VOLATILE is export(:Constants) = [
+                           Nil,
+                           'DIRTY',
+                           'NEEDS_FINALIZE',
+                           'DECOMPRESS_SNAPPY',
+                           'DECOMPRESS_ZLIB',
+                           Nil,
+                           Nil,
+                           Nil,
+                           Nil,
+                           Nil,
+                           Nil,
+                           'PROTOCOL_V1',
+                           Nil,
+                           Nil,
+                           Nil,
+                           Nil,
+                           Nil
+                         ];
 
 # NOTE: these are *not* actually auto-generated. They have been copied
 #       from the auto-generated output found in the Perl 5 version of this module.
@@ -420,9 +499,9 @@ our @TAG-INFO-ARRAY is export = (
   },
   # autoupdated by author_tools/update_from_header.pl do not modify directly!
   {
-    "comment" => "None - Perl undef var; eg my \$var= undef;",
-    "name" => "UNDEF",
-    "type_name" => "UNDEF",
+    "comment" => "None - Perl Nil var; eg my \$var= Nil;",
+    "name" => "Nil",
+    "type_name" => "Nil",
     "type_value" => 37,
     "value" => 37
   },
@@ -586,9 +665,9 @@ our @TAG-INFO-ARRAY is export = (
   },
   # autoupdated by author_tools/update_from_header.pl do not modify directly!
   {
-    "comment" => "undef (PL_sv_undef) - \"the\" Perl undef (see notes)",
-    "name" => "CANONICAL_UNDEF",
-    "type_name" => "CANONICAL_UNDEF",
+    "comment" => "Nil (PL_sv_Nil) - \"the\" Perl Nil (see notes)",
+    "name" => "CANONICAL_Nil",
+    "type_name" => "CANONICAL_Nil",
     "type_value" => 57,
     "value" => 57
   },
