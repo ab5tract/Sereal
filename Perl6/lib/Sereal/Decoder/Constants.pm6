@@ -52,13 +52,13 @@ enum SRL_HDR is export(:Constants) (
 constant SRL_MAGIC_STRING is export(:Constants)                 = "=srl".encode('latin-1');
 constant SRL_MAGIC_STRING_HIGHBIT is export(:Constants)         = "=\x[F3]rl".encode('latin-1');
 constant SRL_MAGIC_STRING_HIGHBIT_UTF8 is export(:Constants)    = "\x[C3]\x[B3]rl".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT_UINT_BE is export(:Constants) = "1039364716";
-constant SRL_MAGIC_STRING_HIGHBIT_UINT_LE is export(:Constants) = "1819472701";
-constant SRL_MAGIC_STRING_UINT_BE is export(:Constants)         = "1030976108";
-constant SRL_MAGIC_STRING_UINT_LE is export(:Constants)         = "1819439933";
+constant SRL_MAGIC_STRING_HIGHBIT_UINT_BE is export(:Constants) = "1039364716".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UINT_LE is export(:Constants) = "1819472701".encode('latin-1');
+constant SRL_MAGIC_STRING_UINT_BE is export(:Constants)         = "1030976108".encode('latin-1');
+constant SRL_MAGIC_STRING_UINT_LE is export(:Constants)         = "1819439933".encode('latin-1');
 constant SRL_MAGIC_STRLEN is export(:Constants)                 = 4;
-constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_BE is export(:Constants) = "1036235634";
-constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_LE is export(:Constants) = "1924383549";
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_BE is export(:Constants) = "1036235634".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_LE is export(:Constants) = "1924383549".encode('latin-1');
 
 enum SRL_MASK is export(:Constants) (
     SRL_MASK_ARRAYREF_COUNT     => 15,
