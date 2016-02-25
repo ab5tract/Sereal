@@ -5,6 +5,7 @@ use lib 'lib';
 use Sereal::Decoder;
 
 ok MY::{'&decode-sereal'}:exists, "decode-sereal is imported via 'use Sereal::Decoder'";
+ok MY::{'&looks-like-sereal'}:exists, "looks-like-sereal is imported via 'use Sereal::Decoder'";
 
 subtest {
     use Sereal::Decoder::Constants;
@@ -19,3 +20,5 @@ subtest {
     ok SRL_MAGIC_STRING eq '=srl'.encode('latin-1'), 'SRL_MAGIC_STRING is present and has the right value';
     ok SRL_MAGIC_STRING_HIGHBIT eq "=\x[F3]rl".encode('latin-1'), 'SRL_MAGIC_STRING_HIGHBIT is present and has the right value';
 }, 'Sereal::Decoder::Constants exports a bunch of constants when asked to';
+
+ok looks-like-sereal('=srl'.encode('latin-1')), "looks-like-sereal returns True";
