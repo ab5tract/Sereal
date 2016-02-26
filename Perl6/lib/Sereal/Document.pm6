@@ -11,14 +11,19 @@ has Int  $.version;
 
 subset SerealHeaderV1 where { $_ eq SRL_MAGIC_STRING };
 subset SerealHeaderV3 where { $_ eq SRL_MAGIC_STRING_HIGHBIT };
-subset SerealLengthIsValid of Blob where { +$_ >= SRL_MAGIC_STRLEN + 3 };
+
+subset ValidLengthBlob of Blob where { +$_ >= SRL_MAGIC_STRLEN + 3 };
 
 sub looks-like-sereal(Blob $blob) is export {
-    my $version-encoding = validate-header-version($blob);
-    return so $version-encoding;
+    my $version-info = validate-header-version($blob);
+    return so $version-info;
 }
 
-sub validate-header-version(SerealLengthIsValid $blob) {
+multi sub validate-header-version(Any $invalid) {
+    die $invalid.perl ~ " is not a valid Sereal blob";
+}
+
+multi sub validate-header-version(ValidLengthBlob $blob) {
     my $header-buf = $blob.subbuf(0, SRL_MAGIC_STRLEN);
 
     my $version-buf = $blob.subbuf(SRL_MAGIC_STRLEN, 1);
@@ -27,13 +32,13 @@ sub validate-header-version(SerealLengthIsValid $blob) {
 
     given $header-buf {
         when SerealHeaderV1 {
-            return $version-encoding if 0 < $version < 3;
+            return { :$version, :$version-encoding } if 0 < $version < 3;
         }
         when SerealHeaderV3 {
-            return $version-encoding if $version >= 3;
+            return { :$version, :$version-encoding } if $version >= 3;
         }
         when * eq SRL_MAGIC_STRING_HIGHBIT_UTF8 {
-            die 'Header implies that you have an accidentally UTF-8 encoded Sereal blob';
+            die "Header implies that you have an accidentally UTF-8 encoded Sereal blob (Sereal version $version)";
         }
     }
     return;
