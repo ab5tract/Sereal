@@ -2,7 +2,7 @@ use v6;
 
 unit module Sereal::Decoder::Constants;
 
-enum SRL_HDR is export(:Constants) (
+enum SRL_HDR is export (
     SRL_HDR_ALIAS               => 46,
     SRL_HDR_ARRAY               => 43,
     SRL_HDR_ARRAYREF            => 64,
@@ -51,13 +51,13 @@ enum SRL_HDR is export(:Constants) (
     SRL_HDR_ZIGZAG              => 33,
 );
 
-enum SRL_MASK is export(:Constants) (
+enum SRL_MASK is export (
     SRL_MASK_ARRAYREF_COUNT     => 15,
     SRL_MASK_HASHREF_COUNT      => 15,
     SRL_MASK_SHORT_BINARY_LEN   => 31,
 );
 
-enum SRL_PROTOCOL is export(:Constants) (
+enum SRL_PROTOCOL is export (
     SRL_PROTOCOL_ENCODING_MASK                  => 240,
     SRL_PROTOCOL_ENCODING_RAW                   => 0,
     SRL_PROTOCOL_ENCODING_SNAPPY                => 16,
@@ -70,42 +70,51 @@ enum SRL_PROTOCOL is export(:Constants) (
     SRL_PROTOCOL_VERSION_MASK                   => 15
 );
 
-constant SRL_NEG_MIN_SIZE is export(:Constants) = 16;
-constant SRL_POS_MAX_SIZE is export(:Constants) = 15;
+constant SRL_NEG_MIN_SIZE is export = 16;
+constant SRL_POS_MAX_SIZE is export = 15;
 
-constant SRL_MAGIC_STRING is export(:Constants)                 = "=srl".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT is export(:Constants)         = "=\x[F3]rl".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT_UTF8 is export(:Constants)    = "\x[C3]\x[B3]rl".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT_UINT_BE is export(:Constants) = "1039364716".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT_UINT_LE is export(:Constants) = "1819472701".encode('latin-1');
-constant SRL_MAGIC_STRING_UINT_BE is export(:Constants)         = "1030976108".encode('latin-1');
-constant SRL_MAGIC_STRING_UINT_LE is export(:Constants)         = "1819439933".encode('latin-1');
-constant SRL_MAGIC_STRLEN is export(:Constants)                 = 4;
-constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_BE is export(:Constants) = "1036235634".encode('latin-1');
-constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_LE is export(:Constants) = "1924383549".encode('latin-1');
+constant SRL_MAGIC_STRING is export                 = "=srl".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT is export         = "=\x[F3]rl".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8 is export    = "\x[C3]\x[B3]rl".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UINT_BE is export = "1039364716".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UINT_LE is export = "1819472701".encode('latin-1');
+constant SRL_MAGIC_STRING_UINT_BE is export         = "1030976108".encode('latin-1');
+constant SRL_MAGIC_STRING_UINT_LE is export         = "1819439933".encode('latin-1');
+constant SRL_MAGIC_STRLEN is export                 = 4;
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_BE is export = "1036235634".encode('latin-1');
+constant SRL_MAGIC_STRING_HIGHBIT_UTF8_UINT_LE is export = "1924383549".encode('latin-1');
 
+# constant SRL_PROTOCOL_VERSION_BITS is export = 4;
+# constant SRL_PROTOCOL_VERSION_MASK is export = ( 1 +< SRL_PROTOCOL_VERSION_BITS ) - 1;
+#
+# constant SRL_PROTOCOL_ENCODING_MASK is export = SRL_PROTOCOL_VERSION_MASK +< SRL_PROTOCOL_VERSION_BITS;
+# constant SRL_PROTOCOL_ENCODING_RAW is export = 0 +< SRL_PROTOCOL_VERSION_BITS;
+# constant SRL_PROTOCOL_ENCODING_SNAPPY is export = 1 +< SRL_PROTOCOL_VERSION_BITS;
+# constant SRL_PROTOCOL_ENCODING_SNAPPY_INCREMENTAL is export = 2 +< SRL_PROTOCOL_VERSION_BITS;
+# constant SRL_PROTOCOL_ENCODING_ZLIB is export = 3 +< SRL_PROTOCOL_VERSION_BITS;
+# constant SRL_PROTOCOL_VERSION_ENCODING_LOC is export = SRL_MAGIC_STRLEN - 1;
 
-constant SRL_F_DECODER_ALIAS_CHECK_FLAGS is export(:Constants)      = 28672;
-constant SRL_F_DECODER_ALIAS_SMALLINT is export(:Constants)         = 4096;
-constant SRL_F_DECODER_ALIAS_VARINT is export(:Constants)           = 8192;
-constant SRL_F_DECODER_DECOMPRESS_SNAPPY is export(:Constants)      = 8;
-constant SRL_F_DECODER_DECOMPRESS_ZLIB is export(:Constants)        = 16;
-constant SRL_F_DECODER_DESTRUCTIVE_INCREMENTAL is export(:Constants) = 1024;
-constant SRL_F_DECODER_DIRTY is export(:Constants)                  = 2;
-constant SRL_F_DECODER_NEEDS_FINALIZE is export(:Constants)         = 4;
-constant SRL_F_DECODER_NO_BLESS_OBJECTS is export(:Constants)       = 512;
-constant SRL_F_DECODER_PROTOCOL_V1 is export(:Constants)            = 2048;
-constant SRL_F_DECODER_READONLY_FLAGS is export(:Constants)         = 98304;
-constant SRL_F_DECODER_REFUSE_OBJECTS is export(:Constants)         = 128;
-constant SRL_F_DECODER_REFUSE_SNAPPY is export(:Constants)          = 32;
-constant SRL_F_DECODER_REFUSE_ZLIB is export(:Constants)            = 64;
-constant SRL_F_DECODER_REUSE is export(:Constants)                  = 1;
-constant SRL_F_DECODER_SET_READONLY is export(:Constants)           = 32768;
-constant SRL_F_DECODER_SET_READONLY_SCALARS is export(:Constants)   = 65536;
-constant SRL_F_DECODER_USE_Nil is export(:Constants)              = 16384;
-constant SRL_F_DECODER_VALIDATE_UTF8 is export(:Constants)          = 256;
-constant SRL_F_DECODER_VOLATILE_FLAGS is export(:Constants)         = 2078;
-constant _FLAG_NAME is export(:Constants) = [
+constant SRL_F_DECODER_ALIAS_CHECK_FLAGS is export      = 28672;
+constant SRL_F_DECODER_ALIAS_SMALLINT is export         = 4096;
+constant SRL_F_DECODER_ALIAS_VARINT is export           = 8192;
+constant SRL_F_DECODER_DECOMPRESS_SNAPPY is export      = 8;
+constant SRL_F_DECODER_DECOMPRESS_ZLIB is export        = 16;
+constant SRL_F_DECODER_DESTRUCTIVE_INCREMENTAL is export = 1024;
+constant SRL_F_DECODER_DIRTY is export                  = 2;
+constant SRL_F_DECODER_NEEDS_FINALIZE is export         = 4;
+constant SRL_F_DECODER_NO_BLESS_OBJECTS is export       = 512;
+constant SRL_F_DECODER_PROTOCOL_V1 is export            = 2048;
+constant SRL_F_DECODER_READONLY_FLAGS is export         = 98304;
+constant SRL_F_DECODER_REFUSE_OBJECTS is export         = 128;
+constant SRL_F_DECODER_REFUSE_SNAPPY is export          = 32;
+constant SRL_F_DECODER_REFUSE_ZLIB is export            = 64;
+constant SRL_F_DECODER_REUSE is export                  = 1;
+constant SRL_F_DECODER_SET_READONLY is export           = 32768;
+constant SRL_F_DECODER_SET_READONLY_SCALARS is export   = 65536;
+constant SRL_F_DECODER_USE_Nil is export              = 16384;
+constant SRL_F_DECODER_VALIDATE_UTF8 is export          = 256;
+constant SRL_F_DECODER_VOLATILE_FLAGS is export         = 2078;
+constant _FLAG_NAME is export = [
                   'REUSE',
                   'DIRTY',
                   'NEEDS_FINALIZE',
@@ -124,7 +133,7 @@ constant _FLAG_NAME is export(:Constants) = [
                   'SET_READONLY',
                   'SET_READONLY_SCALARS'
                 ];
-constant _FLAG_NAME_STATIC is export(:Constants) = [
+constant _FLAG_NAME_STATIC is export = [
                               'REUSE',
                               Nil,
                               Nil,
@@ -144,7 +153,7 @@ constant _FLAG_NAME_STATIC is export(:Constants) = [
                               'SET_READONLY_SCALARS'
                             ];
 
-constant _FLAG_NAME_VOLATILE is export(:Constants) = [
+constant _FLAG_NAME_VOLATILE is export = [
                            Nil,
                            'DIRTY',
                            'NEEDS_FINALIZE',
