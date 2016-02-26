@@ -14,7 +14,8 @@ subset SerealHeaderV3 where { $_ eq SRL_MAGIC_STRING_HIGHBIT };
 subset SerealLengthIsValid of Blob where { +$_ >= SRL_MAGIC_STRLEN + 3 };
 
 sub looks-like-sereal(Blob $blob) is export {
-    return so validate-header-version($blob);
+    my $version-encoding = validate-header-version($blob);
+    return so $version-encoding;
 }
 
 sub validate-header-version(SerealLengthIsValid $blob) {

@@ -37,16 +37,18 @@ subtest {
     ok looks-like-sereal($srl-foo-v1), "srl.foo.v1 looks-like-sereal after it was slurped in";
     ok looks-like-sereal($srl-foo-v2), "srl.foo.v1 looks-like-sereal after it was slurped in";
     ok looks-like-sereal($srl-foo-v3), "srl.foo.v3 looks-like-sereal after it was slurped in";
-}, "srl.foo.v* files all pass looks-like-sereal (sub)";
+}, "srl.foo.v* files all pass looks-like-sereal";
 
 subtest {
     use Sereal::Document;
+    use experimental :pack;
+
     throws-like { looks-like-sereal($srl-foo-v3.subbuf(0,3)) },
                 X::AdHoc,
                 message => /'Constraint type check failed for parameter'/,
                 "looks-like-sereal throws a type mismatch exception for Bufs that are too small";
-    throws-like { looks-like-sereal($srl-foo-v3.encode('UTF-8')) },
+    throws-like { looks-like-sereal("\x[C3]\x[B3]rl\x[3]\x[56]foo".encode('latin-1')) },
                 Exception,
-                message => /encode/,
-                "looks-like-sereal throws a specific exception when you send it a UTF-8 encoded srl.foo.v3";
+                message => 'Header implies that you have an accidentally UTF-8 encoded Sereal blob',
+                "looks-like-sereal throws a specific exception when you send it srl.foo.bad.utf8";
 }, "looks-like-sereal throws the expected exceptions";
