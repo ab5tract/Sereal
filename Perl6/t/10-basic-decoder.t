@@ -18,6 +18,7 @@ subtest {
     ok MY::{'@TAG-INFO-ARRAY'}:exists, '@TAG-INFO-ARRAY is available in current scope';
     ok MY::{'%TAG-INFO-HASH'}:exists, '%TAG-INFO-ARRAY is available in current scope';
     ok +@TAG-INFO-ARRAY == +%TAG-INFO-HASH.keys, '@TAG-INFO-ARRAY and %TAG-INFO-HASH have the same number of elements';
+    is @TAG-INFO-ARRAY, [ %TAG-INFO-HASH.values.sort({$^a<value> <=> $^b<value>}) ], '@TAG-INFO-ARRAY and %TAG-INFO-HASH.values match when sorted';
 }, 'Sereal::Decoder::Constants is sane';
 
 subtest {
@@ -27,12 +28,25 @@ subtest {
     ok SRL_MAGIC_STRING_HIGHBIT eq "=\x[F3]rl".encode('latin-1'), 'SRL_MAGIC_STRING_HIGHBIT is present and has the right value';
 }, 'Sereal::Decoder::Constants exports a bunch of constants when asked to';
 
+my $srl-foo-v1 = 't/srl.foo.v1'.IO.slurp :bin;
+my $srl-foo-v2 = 't/srl.foo.v2'.IO.slurp :bin;
+my $srl-foo-v3 = 't/srl.foo.v3'.IO.slurp :bin;
+
 subtest {
     use Sereal::Document;
-    my $srl-foo-v1 = '/Users/jhaltiwanger/code/p6/Sereal/Perl6/t/srl.foo.v1'.IO.slurp :bin;
     ok looks-like-sereal($srl-foo-v1), "srl.foo.v1 looks-like-sereal after it was slurped in";
-    my $srl-foo-v2 = '/Users/jhaltiwanger/code/p6/Sereal/Perl6/t/srl.foo.v2'.IO.slurp :bin;
     ok looks-like-sereal($srl-foo-v2), "srl.foo.v1 looks-like-sereal after it was slurped in";
-    my $srl-foo-v3 = '/Users/jhaltiwanger/code/p6/Sereal/Perl6/t/srl.foo.v3'.IO.slurp :bin;
     ok looks-like-sereal($srl-foo-v3), "srl.foo.v3 looks-like-sereal after it was slurped in";
-}, "srl.foo.v* files all looks-like-sereal";
+}, "srl.foo.v* files all pass looks-like-sereal (sub)";
+
+subtest {
+    use Sereal::Document;
+    throws-like { looks-like-sereal($srl-foo-v3.subbuf(0,3)) },
+                X::AdHoc,
+                message => /'Constraint type check failed for parameter'/,
+                "looks-like-sereal throws a type mismatch exception for Bufs that are too small";
+    throws-like { looks-like-sereal($srl-foo-v3.encode('UTF-8')) },
+                Exception,
+                message => /encode/,
+                "looks-like-sereal throws a specific exception when you send it a UTF-8 encoded srl.foo.v3";
+}, "looks-like-sereal throws the expected exceptions";
