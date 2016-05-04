@@ -9,7 +9,7 @@ subtest {
 }
 
 subtest {
-    use Sereal::Document;
+    use Sereal::Blob;
     ok MY::{'&looks-like-sereal'}:exists, "looks-like-sereal is imported via 'use Sereal::Document'";
 }
 
@@ -33,22 +33,23 @@ my $srl-foo-v2 = 't/srl.foo.v2'.IO.slurp :bin;
 my $srl-foo-v3 = 't/srl.foo.v3'.IO.slurp :bin;
 
 subtest {
-    use Sereal::Document;
+    use Sereal::Blob;
     ok looks-like-sereal($srl-foo-v1), "srl.foo.v1 looks-like-sereal after it was slurped in";
     ok looks-like-sereal($srl-foo-v2), "srl.foo.v1 looks-like-sereal after it was slurped in";
     ok looks-like-sereal($srl-foo-v3), "srl.foo.v3 looks-like-sereal after it was slurped in";
 }, "srl.foo.v* files all pass looks-like-sereal";
 
 subtest {
-    use Sereal::Document;
+    use Sereal::Blob;
+    use Sereal::Decoder::Exceptions;
     use experimental :pack;
 
     throws-like { looks-like-sereal($srl-foo-v3.subbuf(0,3)) },
-                X::AdHoc,
+                X::InvalidBlob,
                 message => /'not a valid Sereal blob'/,
                 "looks-like-sereal throws a type mismatch exception for Bufs that are too small";
     throws-like { looks-like-sereal("\x[C3]\x[B3]rl\x[3]\x[56]foo".encode('latin-1')) },
-                Exception,
+                X::UTF8EncodedBlob,
                 message => /'Header implies that you have an accidentally UTF-8 encoded Sereal blob'/,
                 "looks-like-sereal throws a specific exception when you send it srl.foo.bad.utf8";
 }, "looks-like-sereal throws the expected exceptions";
