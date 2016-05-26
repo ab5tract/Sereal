@@ -57,14 +57,11 @@ subtest {
 subtest {
     use Sereal::Decoder::Validation;
     my %header-v1 = validate-header-version($srl-foo-v1);
-    dd %header-v1;
     ok %header-v1<version> == 1, "validate-header-version returns 1 for srl.foo.v1";
 
     my %header-v2 = validate-header-version($srl-foo-v2);
-    dd %header-v2;
     ok %header-v2<version> == 2, "validate-header-version returns 2 for srl.foo.v2";
 
     my %header-v3 = validate-header-version($srl-foo-v3);
-    dd %header-v3;
     ok %header-v3<version> == 3, "validate-header-version returns 3 for srl.foo.v3";
 }, "validate-header-version returns the expected data structures";
