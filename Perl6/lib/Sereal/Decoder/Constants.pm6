@@ -175,7 +175,7 @@ constant _FLAG_NAME_VOLATILE is export = [
 
 # NOTE: these are *not* actually auto-generated. They have been copied
 #       from the auto-generated output found in the Perl 5 version of this module.
-our @TAG-INFO-ARRAY is export = (
+BEGIN our @TAG-INFO-ARRAY is export = (
   # autoupdated by author_tools/update_from_header.pl do not modify directly!
   {
     "comment" => "small positive integer - value in low 4 bits (identity)",
@@ -1309,5 +1309,6 @@ our @TAG-INFO-ARRAY is export = (
   }
 );
 
-our %TAG-INFO-HASH is export;
-%TAG-INFO-HASH{ .chr } = @TAG-INFO-ARRAY[$_] for @TAG-INFO-ARRAY.keys;
+constant %TAG-INFO is export = Hash.new( | @TAG-INFO-ARRAY.map({ $_<name> => $_ }) );
+
+enum Tags is export ( | BEGIN @TAG-INFO-ARRAY.map({ $_<name> }) );

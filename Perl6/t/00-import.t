@@ -16,10 +16,10 @@ subtest {
 
 subtest {
     use Sereal::Decoder::Constants;
-    ok MY::{'@TAG-INFO-ARRAY'}:exists, '@TAG-INFO-ARRAY is available in current scope';
-    ok MY::{'%TAG-INFO-HASH'}:exists, '%TAG-INFO-ARRAY is available in current scope';
-    ok +@TAG-INFO-ARRAY == +%TAG-INFO-HASH.keys, '@TAG-INFO-ARRAY and %TAG-INFO-HASH have the same number of elements';
-    is @TAG-INFO-ARRAY, [ %TAG-INFO-HASH.values.sort({$^a<value> <=> $^b<value>}) ], '@TAG-INFO-ARRAY and %TAG-INFO-HASH.values match when sorted';
+    ok POS_0 == 0, "The Tags enum seems to have exported properly (POS_0 == 0)";
+    ok POS_0 ~~ 'POS_0', "The enum values stringify to the proper name (POS_0 ~~ 'POS_0')";
+    ok MY::{'%TAG-INFO'}:exists, '%TAG-INFO is available in current scope';
+    ok %TAG-INFO<<POS_0>><value> == 0, '%TAG-INFO works as a lookup (%TAG-INFO<<POS_0>><value> == 0)';
 }, 'Sereal::Decoder::Constants is sane';
 
 subtest {
