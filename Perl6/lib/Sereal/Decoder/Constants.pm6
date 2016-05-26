@@ -1309,6 +1309,6 @@ BEGIN our @TAG-INFO-ARRAY is export = (
   }
 );
 
-constant %TAG-INFO is export = Hash.new( | @TAG-INFO-ARRAY.map({ $_<name> => $_ }) );
-
 enum Tags is export ( | BEGIN @TAG-INFO-ARRAY.map({ $_<name> }) );
+
+constant %TAG-INFO is export = Hash.new( |@TAG-INFO-ARRAY.map({ $_<name> => $_ }) );

@@ -8,7 +8,7 @@ use Sereal::Decoder::Constants;
 subset SerealHeaderV1 where { $_ eq SRL_MAGIC_STRING };
 subset SerealHeaderV3 where { $_ eq SRL_MAGIC_STRING_HIGHBIT };
 
-subset ValidLengthBlob of Blob where { +$_ >= SRL_MAGIC_STRLEN + 3 };
+subset ValidLengthBlob of Blob where { $_ && +$_ >= SRL_MAGIC_STRLEN + 3 };
 
 sub looks-like-sereal(Blob $blob) is export {
     my $version-info = validate-header-version($blob);
