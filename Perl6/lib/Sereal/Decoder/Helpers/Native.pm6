@@ -13,6 +13,7 @@ sub decode(Buf $buf, uint64 $length) returns Sereal::Reader is native('bufeater'
 sub peek_u8(Sereal::Reader $reader)  returns uint8 is native('bufeater') is export { * }
 sub read_u8(Sereal::Reader $reader)  returns uint8 is native('bufeater') is export { * }
 sub read_varint(Sereal::Reader $reader) returns uint64 is native('bufeater') is export { * }
+sub read_zigzag_varint(Sereal::Reader $reader) returns int64 is native('bufeater') is export { * }
 
 class Reader is export {
   has Sereal::Reader $.reader is required;
@@ -23,7 +24,9 @@ class Reader is export {
 
      "TRUE" => -> $r { $r.pos++; True },
      "FALSE" => -> $r { $r.pos++; False },
-     "VARINT" => -> $r { $r.pos++; read_varint($r) }
+
+     "VARINT" => -> $r { $r.pos++; read_varint($r) },
+     "ZIGZAG" => -> $r { $r.pos++; read_zigzag_varint($r) }
   );
 
   submethod BUILD(:$buf) {

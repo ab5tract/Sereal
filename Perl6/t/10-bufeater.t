@@ -60,3 +60,12 @@ subtest {
 
   #XXX: Need to harden this subtest with more examples
 }, "Sereal::Decoder::Helpers::Native::Reader processes VARINT tags";
+
+subtest {
+  my Buf $buf = Buf.new(0b00100001,0b00000011);
+  my $reader = Reader.new(:$buf);
+  my $tag_result = $reader.process-tag;
+  ok $tag_result == -2, "zigzag-varint processed: $tag_result";
+
+  #XXX: Need to harden this subtest with more examples
+}, "Sereal::Decoder::Helpers::Native::Reader processes ZIGZAGVARINT tags";

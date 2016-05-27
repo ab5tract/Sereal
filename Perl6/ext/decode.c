@@ -26,6 +26,12 @@ void destroy_serial(serial_t *serial) {
   free(serial);
 };
 
+int64_t read_zigzag_varint(serial_t *state) {
+  uint64_t val = read_varint(state);
+
+  return (val >> 1) ^ (-(val & 1));
+}
+
 uint64_t read_varint(serial_t *state) {
   uint64_t val = 0;
   uint8_t msb = 0x80;

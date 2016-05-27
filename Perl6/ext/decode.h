@@ -9,7 +9,7 @@ extern serial_t *decode(unsigned char *buf, unsigned int len);
 
 // complex readers
 extern uint64_t read_varint(serial_t *state);
-
+extern int64_t read_zigzag_varint(serial_t *state);
 
 // primitive readers
 extern uint8_t read_u8(serial_t *state);
