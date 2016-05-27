@@ -12,7 +12,7 @@ my $r = decode($b, +$b);
 # say $num;
 
 use Test;
-plan 8;
+plan 9;
 subtest {
   ok Buf.new([peek_u8($r)]).decode('latin-1') eq 'f', 'Peeking the first character provides an "f"';
   ok $r.pos == 0, 'Peeking did not increment the pos counter';
