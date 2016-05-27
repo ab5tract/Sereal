@@ -24,11 +24,11 @@ subtest {
     throws-like { looks-like-sereal($srl-foo-v3.subbuf(0,3)) },
                 X::InvalidBlob,
                 message => /'not a valid Sereal blob'/,
-                "looks-like-sereal throws a type mismatch exception for Bufs that are too small";
+                "looks-like-sereal throws an X::InvalidBlob mismatch exception for Bufs that are too small";
     throws-like { looks-like-sereal("\x[C3]\x[B3]rl\x[3]\x[56]foo".encode('latin-1')) },
                 X::UTF8EncodedBlob,
                 message => /'Header implies that you have an accidentally UTF-8 encoded Sereal blob'/,
-                "looks-like-sereal throws a specific exception when you send it srl.foo.bad.utf8";
+                "looks-like-sereal throws an X::UTF8EncodedBlob exception when you send it a UTF8-encoded sereal string";
 }, "looks-like-sereal throws the expected exceptions";
 
 subtest {
