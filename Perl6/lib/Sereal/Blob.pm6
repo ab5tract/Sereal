@@ -5,7 +5,7 @@ unit class Sereal::Blob;
 use Sereal::Decoder;
 use Sereal::Decoder::Validation;
 
-has $!body-blob;
+has $.body-blob;
 
 has Int $.version;
 has Int $.version-encoding;
@@ -20,6 +20,7 @@ method new($blob) {
     my $version-encoding = %version-info<version-encoding>;
     my $body-blob = $blob.subbuf(SRL_MAGIC_STRLEN + 3, ($blob - SRL_MAGIC_STRLEN - 3));
 
+    # TODO: optional header parsing
     self.bless(:$version, :$version-encoding, :$body-blob);
 }
 

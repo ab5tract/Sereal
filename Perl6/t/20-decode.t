@@ -20,3 +20,9 @@ subtest {
     ok $blob.version == 3, "Sereal version is available and correct  (v3)";
     # say $blob.body;
 }, "Can create a Sereal::Blob object with blobs from all protocol versions";
+
+# subtest {
+#     use Sereal::Decoder::Helpers :reader;
+#     my $r = Reader.new(buf => $blob.body-blob);
+#     ok $r.read-type(uint8).decode('latin-1') ~~ 'f', "Can read a uint8 and .decode('latin-1')";
+# }, "Sereal::Decoder::Helpers::Reader works for strings";
