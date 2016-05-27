@@ -31,7 +31,7 @@ uint64_t read_varint(serial_t *state) {
   uint8_t msb = 0x80;
   uint8_t data_mask = 0x7f;
   unsigned int shift = 0;
-  
+
   while(peek_u8(state) & msb) {
     val |= (read_u8(state) & data_mask) << shift;
     shift += 7;

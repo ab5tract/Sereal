@@ -8,7 +8,7 @@ extern serial_t *init_serial();
 extern serial_t *decode(unsigned char *buf, unsigned int len);
 
 // complex readers
-uint64_t read_varint(serial_t *state);
+extern uint64_t read_varint(serial_t *state);
 
 
 // primitive readers
@@ -23,6 +23,5 @@ extern float peek_float(serial_t *state);
 
 extern long double read_long_double(serial_t *state);
 extern long double peek_long_double(serial_t *state);
-
 
 #endif

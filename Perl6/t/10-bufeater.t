@@ -54,7 +54,6 @@ subtest {
 
 subtest {
   my Buf $buf = Buf.new(0b00100000,0b10101100,0b00000010);
-  dd $buf;
   my $reader = Reader.new(:$buf);
   my $tag_result = $reader.process-tag;
   ok $tag_result == 300, "Varint processed: $tag_result";
