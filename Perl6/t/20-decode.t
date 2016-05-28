@@ -3,7 +3,10 @@ use v6;
 use Test;
 use lib 'lib';
 
-plan 1;
+use Sereal::Decoder;
+use Sereal::Decoder::Constants;
+
+plan 5;
 
 my $srl-foo-v1 = 't/corpus/srl.foo.v1'.IO.slurp :bin;
 my $srl-foo-v2 = 't/corpus/srl.foo.v2'.IO.slurp :bin;
@@ -21,8 +24,38 @@ subtest {
     # say $blob.body;
 }, "Can create a Sereal::Blob object with blobs from all protocol versions";
 
-# subtest {
-#     use Sereal::Decoder::Helpers :reader;
-#     my $r = Reader.new(buf => $blob.body-blob);
-#     ok $r.read-type(uint8).decode('latin-1') ~~ 'f', "Can read a uint8 and .decode('latin-1')";
-# }, "Sereal::Decoder::Helpers::Reader works for strings";
+subtest {
+  my Buf $buf .= new: ^16;
+  my $reader = Sereal::Decoder.new(:$buf);
+  ok $reader.length == +$buf, "The reader.length is correct ({$reader.length} == {+$buf})";
+  for ^16 -> $i {
+    ok $reader.process-tag == $i, "Reading the 16 elem buffer of POS_* all equaled their proper values (i = $i, tag={@TAG-INFO[$i]<name>})";
+  }
+}, "Sereal::Decoder::Helpers::Native::Reader processes POS_* tags";
+
+subtest {
+  my Buf $buf .= new: 16..^32;
+  my $reader = Sereal::Decoder.new(:$buf);
+  ok $reader.length == +$buf, "The reader.length is correct ({$reader.length} == {+$buf})";
+  for 16..^32 -> $i {
+    ok $reader.process-tag == $i - 32, "Reading the 16 elem buffer of NEG_* all equaled their proper values (i = $i, tag={@TAG-INFO[$i]<name>})";
+  }
+}, "Sereal::Decoder::Helpers::Native::Reader processes NEG_* tags";
+
+subtest {
+  my Buf $buf = Buf.new(0b00100000,0b10101100,0b00000010);
+  my $reader = Sereal::Decoder.new(:$buf);
+  my $tag_result = $reader.process-tag;
+  ok $tag_result == 300, "Varint processed: $tag_result";
+
+  #XXX: Need to harden this subtest with more examples
+}, "Sereal::Decoder::Helpers::Native::Reader processes VARINT tags";
+
+subtest {
+  my Buf $buf = Buf.new(0b00100001,0b00000011);
+  my $reader = Sereal::Decoder.new(:$buf);
+  my $tag_result = $reader.process-tag;
+  ok $tag_result == -2, "zigzag-varint processed: $tag_result";
+
+  #XXX: Need to harden this subtest with more examples
+}, "Sereal::Decoder::Helpers::Native::Reader processes ZIGZAG VARINT tags";
