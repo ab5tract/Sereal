@@ -4,3 +4,4 @@
 *.bak
 Java/target/
 Perl6/lib/.precomp
+*.dylib

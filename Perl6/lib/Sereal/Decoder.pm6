@@ -18,14 +18,14 @@ submethod BUILD(:$buf) {
 }
 
 my %tag-to-func = (
-   "POS" => -> $r { read_u8($r) },
-   "NEG" => -> $r { read_u8($r) - 32 },
+   "POS"        => -> $r { read_u8($r) },
+   "NEG"        => -> $r { read_u8($r) - 32 },
 
-   "TRUE" => -> $r { $r.pos++; True },
-   "FALSE" => -> $r { $r.pos++; False },
+   "TRUE"       => -> $r { $r.pos++; True },
+   "FALSE"      => -> $r { $r.pos++; False },
 
-   "VARINT" => -> $r { $r.pos++; read_varint($r) },
-   "ZIGZAG" => -> $r { $r.pos++; read_zigzag_varint($r) }
+   "VARINT"     => -> $r { $r.pos++; read_varint($r) },
+   "ZIGZAG"     => -> $r { $r.pos++; read_zigzag_varint($r) }
 );
 
 method process-tag {

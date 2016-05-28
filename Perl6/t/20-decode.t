@@ -31,7 +31,7 @@ subtest {
   for ^16 -> $i {
     ok $reader.process-tag == $i, "Reading the 16 elem buffer of POS_* all equaled their proper values (i = $i, tag={@TAG-INFO[$i]<name>})";
   }
-}, "Sereal::Decoder::Helpers::Native::Reader processes POS_* tags";
+}, "Sereal::Decoder processes POS_* tags";
 
 subtest {
   my Buf $buf .= new: 16..^32;
@@ -40,7 +40,7 @@ subtest {
   for 16..^32 -> $i {
     ok $reader.process-tag == $i - 32, "Reading the 16 elem buffer of NEG_* all equaled their proper values (i = $i, tag={@TAG-INFO[$i]<name>})";
   }
-}, "Sereal::Decoder::Helpers::Native::Reader processes NEG_* tags";
+}, "Sereal::Decoder processes NEG_* tags";
 
 subtest {
   my Buf $buf = Buf.new(0b00100000,0b10101100,0b00000010);
@@ -49,7 +49,7 @@ subtest {
   ok $tag_result == 300, "Varint processed: $tag_result";
 
   #XXX: Need to harden this subtest with more examples
-}, "Sereal::Decoder::Helpers::Native::Reader processes VARINT tags";
+}, "Sereal::Decoder processes VARINT tags";
 
 subtest {
   my Buf $buf = Buf.new(0b00100001,0b00000011);
@@ -58,4 +58,4 @@ subtest {
   ok $tag_result == -2, "zigzag-varint processed: $tag_result";
 
   #XXX: Need to harden this subtest with more examples
-}, "Sereal::Decoder::Helpers::Native::Reader processes ZIGZAG VARINT tags";
+}, "Sereal::Decoder processes ZIGZAG VARINT tags";
