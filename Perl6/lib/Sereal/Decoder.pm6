@@ -24,6 +24,8 @@ my %tag-to-func = (
    "TRUE"       => -> $r { $r.pos++; True },
    "FALSE"      => -> $r { $r.pos++; False },
 
+   "FLOAT"      => -> $r { $r.pos++; read_float($r) },
+
    "VARINT"     => -> $r { $r.pos++; read_varint($r) },
    "ZIGZAG"     => -> $r { $r.pos++; read_zigzag_varint($r) }
 );
