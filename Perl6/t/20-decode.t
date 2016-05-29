@@ -64,5 +64,6 @@ subtest {
   my Buf $buf = Buf.new( 0b00100010,0b01000000,0b01001001,0b00001110,0b11010000 );
   my $reader = Sereal::Decoder.new(:$buf);
   my $tag_result = $reader.process-tag;
+  dd $tag_result;
   ok $tag_result == 3.141529, "Float processed: $tag_result";
 }, "Sereal::Decoder processes FLOAT tags";
