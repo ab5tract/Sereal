@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+// // in case we want to use memcpy
+// #include <string.h>
 
 #include "decode.h"
 
@@ -79,19 +80,19 @@ double read_double(serial_t *state) {
 };
 
 double peek_double(serial_t *state) {
-    double val = 0;
-
     // UNION APPROACH
-    // union {
-    //     double d;
-    //     char bytes[sizeof(double)];
-    // } val;
-    // for (int i = 0; i < sizeof(double); ++i) val.bytes[i] = state->buf[state->pos+1];
-    // return val.d;
+    union {
+        double d;
+        char bytes[sizeof(double)];
+    } val;
+    for (int i = 0; i < sizeof(double); ++i) val.bytes[i] = state->buf[state->pos+i];
+    return val.d;
 
-    unsigned char *buf = &state->buf[state->pos];
-    memcpy(&val, buf, sizeof(double));
-    return val;
+    // // memcpy APPROACH
+    // double val = 0;
+    // unsigned char *buf = &state->buf[state->pos];
+    // memcpy(&val, buf, sizeof(double));
+    // return val;
 };
 
 float read_float(serial_t *state) {
