@@ -51,7 +51,6 @@ my %tag-to-func = (
 
 method process-tag {
     my $tag = @TAG-INFO[ peek_u8($!reader) ];
-
     my $type_func = %tag-to-func{ $tag<type_name> };
     if $type_func ~~ Callable {
         return $type_func($!reader, $tag);

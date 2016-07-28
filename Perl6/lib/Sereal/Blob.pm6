@@ -18,7 +18,7 @@ method new($blob) {
     my %header-info = validate-header-version($blob);
     my $version = %header-info<version>;
     my $version-encoding = %header-info<version-encoding>;
-    # my $body-blob = $blob.subbuf(SRL_MAGIC_STRLEN, $blob - SRL_MAGIC_STRLEN);
+    my $body-blob = $blob.subbuf(SRL_MAGIC_STRLEN, $blob - SRL_MAGIC_STRLEN);
 
     # TODO: optional header parsing
     self.bless( :$body-blob, :$version, :$version-encoding);

@@ -27,6 +27,6 @@ extern float peek_float(serial_t *state);
 extern long double read_long_double(serial_t *state);
 extern long double peek_long_double(serial_t *state);
 
-extern void read_string(serial_t *state, uint32_t len, char *string);
+extern void read_string(serial_t *state, uint32_t len, unsigned char *string);
 
 #endif

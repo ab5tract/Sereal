@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "decode.h"
 
@@ -78,10 +79,19 @@ double read_double(serial_t *state) {
 };
 
 double peek_double(serial_t *state) {
-  double val = 0;
-  val = (double) state->buf[state->pos];
-  printf("%f", val);
-  return val;
+    double val = 0;
+
+    // UNION APPROACH
+    // union {
+    //     double d;
+    //     char bytes[sizeof(double)];
+    // } val;
+    // for (int i = 0; i < sizeof(double); ++i) val.bytes[i] = state->buf[state->pos+1];
+    // return val.d;
+
+    unsigned char *buf = &state->buf[state->pos];
+    memcpy(&val, buf, sizeof(double));
+    return val;
 };
 
 float read_float(serial_t *state) {
@@ -108,7 +118,7 @@ long double peek_long_double(serial_t *state) {
   return val;
 };
 
-void read_string(serial_t *state, uint32_t len, char *string) {
+void read_string(serial_t *state, uint32_t len, unsigned char *string) {
     for (int p=0; p <= len; p++) {
         string[p] = read_u8(state);
     }
