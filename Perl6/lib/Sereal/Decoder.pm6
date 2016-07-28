@@ -1,6 +1,7 @@
 unit class Sereal::Decoder;
 
 use Sereal::Decoder::Constants;
+use Sereal::Decoder::Validation;
 
 need Sereal::Decoder::Reader::Native;
 
@@ -13,27 +14,50 @@ import Sereal::Decoder::Reader::Native;
 
 has Sereal::Reader $.reader;
 
-submethod BUILD(:$buf) {
-  $!reader = decode($buf, +$buf);
+multi submethod BUILD(:$reader!) {
+    $!reader = $reader;
+}
+
+multi submethod BUILD(:$buf!, :$naked!) {
+    $!reader = decode($buf, +$buf);
+}
+
+multi submethod BUILD(:$buf!) {
+    my %header = validate-header-version($buf);
+    $!reader = %header<reader>;
 }
 
 my %tag-to-func = (
-   "POS"        => -> $r { read_u8($r) },
-   "NEG"        => -> $r { read_u8($r) - 32 },
+   "POS"            => -> $r,$t { read_u8($r) },
+   "NEG"            => -> $r,$t { read_u8($r) - 32 },
 
-   "TRUE"       => -> $r { $r.pos++; True },
-   "FALSE"      => -> $r { $r.pos++; False },
+   "TRUE"           => -> $r,$t { $r.pos++; True },
+   "FALSE"          => -> $r,$t { $r.pos++; False },
 
-   "FLOAT"      => -> $r { say "FLOAT"; $r.pos++; read_float($r) },
+   "FLOAT"          => -> $r,$t { $r.pos++; read_float($r) },
+   "DOUBLE"         => -> $r,$t { $r.pos++; read_double($r) },
 
-   "VARINT"     => -> $r { $r.pos++; read_varint($r) },
-   "ZIGZAG"     => -> $r { $r.pos++; read_zigzag_varint($r) }
+   "VARINT"         => -> $r,$t { $r.pos++; read_varint($r) },
+   "ZIGZAG"         => -> $r,$t { $r.pos++; read_zigzag_varint($r) },
+
+   "SHORT_BINARY"   => -> $r,$t {
+       $r.pos++;
+       my $length = $t<masked_val>;
+       my $latin-buf = Buf.new(0 xx $length);
+       read_string($r, $length, $latin-buf);
+       $latin-buf.decode('latin-1');
+   },
 );
 
 method process-tag {
-  my $tag = @TAG-INFO[ peek_u8($!reader) ];
-  dd $tag;
-  return %tag-to-func{ $tag<type_name> }($!reader)
+    my $tag = @TAG-INFO[ peek_u8($!reader) ];
+
+    my $type_func = %tag-to-func{ $tag<type_name> };
+    if $type_func ~~ Callable {
+        return $type_func($!reader, $tag);
+    } else {
+        die "$tag<type_name> is NYI";
+    }
 }
 
 method length {

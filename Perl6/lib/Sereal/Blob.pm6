@@ -15,13 +15,13 @@ has Sereal::Decoder $.decoder;
 method new($blob) {
     use Sereal::Decoder::Constants;
 
-    my %version-info = validate-header-version($blob);
-    my $version = %version-info<version>;
-    my $version-encoding = %version-info<version-encoding>;
-    my $body-blob = $blob.subbuf(SRL_MAGIC_STRLEN + 3, ($blob - SRL_MAGIC_STRLEN - 3));
+    my %header-info = validate-header-version($blob);
+    my $version = %header-info<version>;
+    my $version-encoding = %header-info<version-encoding>;
+    # my $body-blob = $blob.subbuf(SRL_MAGIC_STRLEN, $blob - SRL_MAGIC_STRLEN);
 
     # TODO: optional header parsing
-    self.bless(:$version, :$version-encoding, :$body-blob);
+    self.bless( :$body-blob, :$version, :$version-encoding);
 }
 
 submethod BUILD(:$!body-blob, :$!version, :$!version-encoding) { }

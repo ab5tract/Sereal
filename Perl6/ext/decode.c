@@ -26,6 +26,18 @@ void destroy_serial(serial_t *serial) {
   free(serial);
 };
 
+uint32_t peek_uint32(serial_t *state) {
+    uint32_t val = 0;
+    val = (uint32_t) state->buf[state->pos];
+    return val;
+}
+
+uint32_t read_uint32(serial_t *state) {
+    uint32_t val = peek_uint32(state);
+    state->pos += sizeof(uint32_t);
+    return val;
+}
+
 int64_t read_zigzag_varint(serial_t *state) {
   uint64_t val = read_varint(state);
 
@@ -68,6 +80,7 @@ double read_double(serial_t *state) {
 double peek_double(serial_t *state) {
   double val = 0;
   val = (double) state->buf[state->pos];
+  printf("%f", val);
   return val;
 };
 
@@ -94,3 +107,10 @@ long double peek_long_double(serial_t *state) {
   val = (long double) state->buf[state->pos];
   return val;
 };
+
+void read_string(serial_t *state, uint32_t len, char *string) {
+    for (int p=0; p <= len; p++) {
+        string[p] = read_u8(state);
+    }
+    return;
+}
