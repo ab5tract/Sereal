@@ -8,23 +8,23 @@ use Sereal::Decoder::Constants;
 
 plan 7;
 
-my $srl-foo-v1 = 't/corpus/srl.foo.v1'.IO.slurp :bin;
-my $srl-foo-v2 = 't/corpus/srl.foo.v2'.IO.slurp :bin;
-my $srl-foo-v3 = 't/corpus/srl.foo.v3'.IO.slurp :bin;
-
-# Sereal::Blob might go away, not convinced it is necessary
-
-my $blob;
-subtest {
-    use Sereal::Blob;
-    ok $blob = Sereal::Blob.new($srl-foo-v1), "Sereal::Blob object created successfully (v1)";
-    ok $blob.version == 1, "Sereal version is available and correct  (v1)";
-    ok $blob = Sereal::Blob.new($srl-foo-v2), "Sereal::Blob object created successfully (v2)";
-    ok $blob.version == 2, "Sereal version is available and correct  (v2)";
-    ok $blob = Sereal::Blob.new($srl-foo-v3), "Sereal::Blob object created successfully (v3)";
-    ok $blob.version == 3, "Sereal version is available and correct  (v3)";
-    # say $blob.body;
-}, "Can create a Sereal::Blob object with blobs from all protocol versions";
+# my $srl-foo-v1 = 't/corpus/short_binary/srl.short_binary.v1'.IO.slurp :bin;
+# my $srl-foo-v2 = 't/corpus/short_binary/srl.short_binary.v2'.IO.slurp :bin;
+# my $srl-foo-v3 = 't/corpus/short_binary/srl.short_binary.v3'.IO.slurp :bin;
+#
+# # Sereal::Blob might go away, not convinced it is necessary
+#
+# my $blob;
+# subtest {
+#     use Sereal::Blob;
+#     ok $blob = Sereal::Blob.new($srl-foo-v1), "Sereal::Blob object created successfully (v1)";
+#     ok $blob.version == 1, "Sereal version is available and correct  (v1)";
+#     ok $blob = Sereal::Blob.new($srl-foo-v2), "Sereal::Blob object created successfully (v2)";
+#     ok $blob.version == 2, "Sereal version is available and correct  (v2)";
+#     ok $blob = Sereal::Blob.new($srl-foo-v3), "Sereal::Blob object created successfully (v3)";
+#     ok $blob.version == 3, "Sereal version is available and correct  (v3)";
+#     # say $blob.body;
+# }, "Can create a Sereal::Blob object with blobs from all protocol versions";
 
 subtest {
   my Buf $buf .= new: ^16;
@@ -62,18 +62,34 @@ subtest {
   #XXX: Need to harden this subtest with more examples
 }, "Sereal::Decoder processes ZIGZAG VARINT tags";
 
-subtest {
-  my $buf = 't/corpus/srl.foo.v3'.IO.slurp :bin;
-  my $reader = Sereal::Decoder.new(:$buf);
-  my $tag_result = $reader.process-tag;
-  ok $tag_result eq 'foo', "SHORT_BINARY processed: $tag_result";
-}, "Sereal::Decoder processes SHORT_BINARY tags";
+# subtest {
+#   my $buf = 't/corpus/short_binary/srl.short_binary.v3'.IO.slurp :bin;
+#   my $reader = Sereal::Decoder.new(:$buf);
+#   my $tag_result = $reader.process-tag;
+#   ok $tag_result eq 'sereal', "SHORT_BINARY processed: $tag_result";
+# }, "Sereal::Decoder processes SHORT_BINARY tags";
+#
+# subtest {
+#     my $buf = 't/corpus/double/srl.double.v3'.IO.slurp :bin;
+#     my $reader = Sereal::Decoder.new(:$buf);
+#     my $tag_result = $reader.process-tag;
+#     ok $tag_result == 0.42, "DOUBLE processed: $tag_result";
+# }, "Sereal::Decoder processes DOUBLE tags";
+use JSON::Tiny;
+use MONKEY-SEE-NO-EVAL;
+for ($?FILE.IO.dirname ~ "/corpus").IO.dir -> $topic-path {
+    my $topic = $topic-path.IO.basename;
+    say "$topic in $topic-path";
+    subtest {
+        my $info = from-json(($topic-path ~ '/info.json').IO.slurp);
+        my $payload = $info<payload>;
+        for $topic-path.IO.dir.grep(/'srl'/).kv -> $idx, $testcase {
+            my $buf = $testcase.IO.slurp :bin;
+            my $tag_result = Sereal::Decoder.new(:$buf).process-tag;
 
-subtest {
-    my $buf = 't/corpus/float/srl.float.v3'.IO.slurp :bin;
-    my $reader = Sereal::Decoder.new(:$buf);
-    my $tag_result = $reader.process-tag;
-    ok $tag_result == 0.42, "DOUBLE processed: $tag_result";
-}, "Sereal::Decoder processes DOUBLE tags";
+            ok $tag_result ~~ $payload[$idx], "{$topic.uc} processed: {$tag_result}";
+        }
+    }, "Sereal::Decoder processes SHORT_BINARY tags";
+}
 
 # ok $tag_result == 3.1415, "Float processed: $tag_result";

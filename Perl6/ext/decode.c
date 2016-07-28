@@ -103,11 +103,11 @@ float read_float(serial_t *state) {
 
 float peek_float(serial_t *state) {
   union {
-      float d;
+      float f;
       char bytes[sizeof(float)];
   } val;
   for (int i = 0; i < sizeof(float); i++) val.bytes[i] = state->buf[state->pos+i];
-  return val.d;
+  return val.f;
 };
 
 long double read_long_double(serial_t *state) {
@@ -117,11 +117,15 @@ long double read_long_double(serial_t *state) {
 };
 
 long double peek_long_double(serial_t *state) {
-  long double val = 0;
-  val = (long double) state->buf[state->pos];
-  return val;
+  union {
+      long double ld;
+      char bytes[sizeof(long double)];
+  } val;
+  for (int i = 0; i < sizeof(long double); i++) val.bytes[i] = state->buf[state->pos+i];
+  return val.ld;
 };
 
+// read_string doesn't really need a peek equivalent
 void read_string(serial_t *state, uint32_t len, unsigned char *string) {
     for (int p=0; p <= len; p++) {
         string[p] = read_u8(state);
