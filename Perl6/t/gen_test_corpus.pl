@@ -44,6 +44,26 @@ my $dec_v3 = Sereal::Decoder->new({protocol_version => 3});
 # my @decoders = ( $dec_v1, $dec_v2, $dec_v3 );
 my @decoders = $dec_v3;
 
+{
+    my $topic = 'pos';
+    my $args = {
+        payload     => [ 0..15 ],
+        comparator  => '==',
+        topic       => $topic,
+    };
+    cover($topic, $args);
+}
+
+{
+    my $topic = 'neg';
+    my $args = {
+        payload     => [ 16..31 ],
+        comparator  => '==',
+        topic       => $topic,
+    };
+    cover($topic, $args);
+}
+
 # Create a Sereal blob of a basic string for each version of Sereal
 {
     my $topic = 'short_binary';
@@ -112,7 +132,7 @@ sub create_testcase {
     mkdir($dir);
 
     foreach my $i (0..$#blobs) {
-        my $fh_name = $dir . "/srl" . ".$name" . ".v" . ($i + 1);
+        my $fh_name = $dir . "/srl" . ".$name" . ".v3";
         open my $fh, '>', $fh_name;
         print $fh $blobs[$i];
         close $fh;
@@ -125,7 +145,8 @@ sub verify_testcase {
     my $name_output = $output_dir . "/$topic";
 
     foreach my $i (0..$#decoders) {
-        my $v = ".v" . ($i + 1);
+        # my $v = ".v" . ($i + 1);
+        my $v = '.v3'; # hardcoded for the moment
         my $fh_name = $name_output . "/srl" . ".$name" . $v;
         open my $fh, '<', $fh_name;
         my $value = $decoders[$i]->decode(<$fh>);

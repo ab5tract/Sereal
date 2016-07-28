@@ -8,42 +8,6 @@ use Sereal::Decoder::Constants;
 
 plan 7;
 
-# my $srl-foo-v1 = 't/corpus/short_binary/srl.short_binary.v1'.IO.slurp :bin;
-# my $srl-foo-v2 = 't/corpus/short_binary/srl.short_binary.v2'.IO.slurp :bin;
-# my $srl-foo-v3 = 't/corpus/short_binary/srl.short_binary.v3'.IO.slurp :bin;
-#
-# # Sereal::Blob might go away, not convinced it is necessary
-#
-# my $blob;
-# subtest {
-#     use Sereal::Blob;
-#     ok $blob = Sereal::Blob.new($srl-foo-v1), "Sereal::Blob object created successfully (v1)";
-#     ok $blob.version == 1, "Sereal version is available and correct  (v1)";
-#     ok $blob = Sereal::Blob.new($srl-foo-v2), "Sereal::Blob object created successfully (v2)";
-#     ok $blob.version == 2, "Sereal version is available and correct  (v2)";
-#     ok $blob = Sereal::Blob.new($srl-foo-v3), "Sereal::Blob object created successfully (v3)";
-#     ok $blob.version == 3, "Sereal version is available and correct  (v3)";
-#     # say $blob.body;
-# }, "Can create a Sereal::Blob object with blobs from all protocol versions";
-
-subtest {
-  my Buf $buf .= new: ^16;
-  my $reader = Sereal::Decoder.new(:$buf, :naked);
-  ok $reader.length == +$buf, "The reader.length is correct ({$reader.length} == {+$buf})";
-  for ^16 -> $i {
-    ok $reader.process-tag == $i, "Reading the 16 elem buffer of POS_* all equaled their proper values (i = $i, tag={@TAG-INFO[$i]<name>})";
-  }
-}, "Sereal::Decoder processes POS_* tags";
-
-subtest {
-  my Buf $buf .= new: 16..^32;
-  my $reader = Sereal::Decoder.new(:$buf, :naked);
-  ok $reader.length == +$buf, "The reader.length is correct ({$reader.length} == {+$buf})";
-  for 16..^32 -> $i {
-    ok $reader.process-tag == $i - 32, "Reading the 16 elem buffer of NEG_* all equaled their proper values (i = $i, tag={@TAG-INFO[$i]<name>})";
-  }
-}, "Sereal::Decoder processes NEG_* tags";
-
 subtest {
   my Buf $buf = Buf.new(0b00100000,0b10101100,0b00000010);
   my $reader = Sereal::Decoder.new(:$buf, :naked);
@@ -62,19 +26,6 @@ subtest {
   #XXX: Need to harden this subtest with more examples
 }, "Sereal::Decoder processes ZIGZAG VARINT tags";
 
-# subtest {
-#   my $buf = 't/corpus/short_binary/srl.short_binary.v3'.IO.slurp :bin;
-#   my $reader = Sereal::Decoder.new(:$buf);
-#   my $tag_result = $reader.process-tag;
-#   ok $tag_result eq 'sereal', "SHORT_BINARY processed: $tag_result";
-# }, "Sereal::Decoder processes SHORT_BINARY tags";
-#
-# subtest {
-#     my $buf = 't/corpus/double/srl.double.v3'.IO.slurp :bin;
-#     my $reader = Sereal::Decoder.new(:$buf);
-#     my $tag_result = $reader.process-tag;
-#     ok $tag_result == 0.42, "DOUBLE processed: $tag_result";
-# }, "Sereal::Decoder processes DOUBLE tags";
 use JSON::Tiny;
 use MONKEY-SEE-NO-EVAL;
 for ($?FILE.IO.dirname ~ "/corpus").IO.dir -> $topic-path {
@@ -83,13 +34,12 @@ for ($?FILE.IO.dirname ~ "/corpus").IO.dir -> $topic-path {
     subtest {
         my $info = from-json(($topic-path ~ '/info.json').IO.slurp);
         my $payload = $info<payload>;
-        for $topic-path.IO.dir.grep(/'srl'/).kv -> $idx, $testcase {
-            my $buf = $testcase.IO.slurp :bin;
+        my @cases =  $topic-path.IO.dir.grep(/'srl'/).sort({ ($^a.basename ~~ /(\d+)/) <=> ($^b.basename ~~ /(\d+)/) });
+        for @cases.kv -> $idx, $testcase {
+            my $buf = $testcase.slurp :bin;
             my $tag_result = Sereal::Decoder.new(:$buf).process-tag;
 
-            ok $tag_result ~~ $payload[$idx], "{$topic.uc} processed: {$tag_result}";
+            ok $tag_result ~~ $payload[$idx], "{$topic.uc} -- got: {$tag_result}\texpected: {$payload[$idx]}";
         }
     }, "Sereal::Decoder processes SHORT_BINARY tags";
 }
-
-# ok $tag_result == 3.1415, "Float processed: $tag_result";
