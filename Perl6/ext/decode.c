@@ -85,7 +85,7 @@ double peek_double(serial_t *state) {
         double d;
         char bytes[sizeof(double)];
     } val;
-    for (int i = 0; i < sizeof(double); ++i) val.bytes[i] = state->buf[state->pos+i];
+    for (int i = 0; i < sizeof(double); i++) val.bytes[i] = state->buf[state->pos+i];
     return val.d;
 
     // // memcpy APPROACH
@@ -102,9 +102,12 @@ float read_float(serial_t *state) {
 };
 
 float peek_float(serial_t *state) {
-  float val = 0;
-  val = (float) state->buf[state->pos];
-  return val;
+  union {
+      float d;
+      char bytes[sizeof(float)];
+  } val;
+  for (int i = 0; i < sizeof(float); i++) val.bytes[i] = state->buf[state->pos+i];
+  return val.d;
 };
 
 long double read_long_double(serial_t *state) {

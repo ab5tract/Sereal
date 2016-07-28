@@ -46,7 +46,7 @@ my @decoders = ( $dec_v1, $dec_v2, $dec_v3 );
 
 {
     my $payload = 0.42;
-    my $name = 'float';
+    my $name = 'double';
     cover_versions($name, $payload);
     verify_versions($name, $payload);
 }
