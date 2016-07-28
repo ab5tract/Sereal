@@ -24,14 +24,16 @@ my %tag-to-func = (
    "TRUE"       => -> $r { $r.pos++; True },
    "FALSE"      => -> $r { $r.pos++; False },
 
-   "FLOAT"      => -> $r { $r.pos++; read_float($r) },
+   "FLOAT"      => -> $r { say "FLOAT"; $r.pos++; read_float($r) },
 
    "VARINT"     => -> $r { $r.pos++; read_varint($r) },
    "ZIGZAG"     => -> $r { $r.pos++; read_zigzag_varint($r) }
 );
 
 method process-tag {
-  return %tag-to-func{ @TAG-INFO[ peek_u8($!reader) ]<type_name> }($!reader)
+  my $tag = @TAG-INFO[ peek_u8($!reader) ];
+  dd $tag;
+  return %tag-to-func{ $tag<type_name> }($!reader)
 }
 
 method length {

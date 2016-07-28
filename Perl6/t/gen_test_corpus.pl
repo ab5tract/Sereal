@@ -34,6 +34,12 @@ my @encoders = ( $enc_v1, $enc_v2, $enc_v3 );
     my $payload = 'foo'; # oldies but goodies
     my $name = $payload;
     cover_versions($name, $payload);
+
+    my $pi = 3.1415;
+
+    open my $fh, '>', "${output_dir}/srl-float";
+      print $fh $enc_v3->encode($pi);
+    close $fh;
 }
 
 sub cover_versions {
@@ -48,6 +54,7 @@ sub cover_versions {
     foreach my $i (0..$#blobs) {
         my $fh_name = $output_dir . "/srl" . ".$name" . ".v" . ($i + 1);
         open my $fh, '>', $fh_name;
-        print $fh $blobs[$i];
+          print $fh $blobs[$i];
+        close $fh;
     }
 }
