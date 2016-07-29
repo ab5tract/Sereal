@@ -49,6 +49,8 @@ multi sub validate-header-version(ValidLengthBlob $blob, :$pure!) is export {
 }
 
 multi sub validate-header-version(ValidLengthBlob $blob) is export {
+    my $header-buf = $blob.subbuf(0, SRL_MAGIC_STRLEN);
+    die X::UTF8EncodedBlob.new if $header-buf eq SRL_MAGIC_STRING_HIGHBIT_UTF8;
     my $reader = decode($blob, +$blob);
     my $magic = read_uint32($reader);
     my $version-encoding = read_u8($reader);

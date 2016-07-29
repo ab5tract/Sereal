@@ -6,7 +6,7 @@ use lib 'lib';
 use Sereal::Decoder;
 use Sereal::Decoder::Constants;
 
-plan 8;
+plan 9;
 
 subtest {
   my Buf $buf = Buf.new(0b00100000,0b10101100,0b00000010);
