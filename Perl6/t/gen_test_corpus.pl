@@ -95,6 +95,17 @@ my @decoders = $dec_v3;
     cover($topic, $args);
 }
 
+{
+    my $topic = 'array';
+    my $args  = {
+        payload     => [ [1..5], ['a'..'z'], [1.23, 4.56, 7.89] ],
+        comparator  => '==',
+        topic       => $topic,
+    };
+    cover($topic, $args);
+}
+
+
 sub cover {
     my ($topic, $args) = @_;
 
@@ -154,7 +165,7 @@ sub verify_testcase {
         my $v = '.v3'; # hardcoded for the moment
         my $fh_name = $name_output . "/srl" . ".$name" . $v;
         open my $fh, '<', $fh_name;
-        my $value = $decoders[$i]->decode(<$fh>);
+        my $value = $decoders[$i]->decode(do { local $/ = undef; <$fh> });
         say "$v " . ($value ~~ $payload ? 'PASSED' : 'FAILED') . " : payload => $payload, value => $value";
         close $fh;
     }

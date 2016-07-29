@@ -56,6 +56,19 @@ my %tag-to-func = (
        read_string($r, $length, $latin-buf);
        $latin-buf.decode('latin-1');
    },
+
+   "ARRAY"          => -> $r, $t {
+     $r.pos++;
+     my $count = %tag-to-func{'VARINT'}($r,'VARINT');
+     my @ret;
+
+     for 0..$count {
+       push @ret, $r.process-tag;
+     }
+
+     return @ret;
+
+   }
 );
 
 method process-tag {
