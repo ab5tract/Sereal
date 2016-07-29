@@ -42,7 +42,8 @@ for ($?FILE.IO.dirname ~ "/corpus").IO.dir -> $topic-path {
             my $buf = $testcase.slurp :bin;
             my $tag_result = Sereal::Decoder.new(:$buf).process-tag;
 
-            ok $tag_result ~~ $payload[$idx], "{$topic.uc} -- got: {$tag_result.perl}\texpected: {$payload[$idx].perl}";
+            ok do { $tag_result ~~ $payload[$idx] || try $tag_result == $payload[$idx] },
+               "{$topic.uc} -- got: {$tag_result.perl}\texpected: {$payload[$idx].perl}";
         }
     }, "Sereal::Decoder processes SHORT_BINARY tags";
 }
