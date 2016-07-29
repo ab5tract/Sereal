@@ -98,13 +98,27 @@ my @decoders = $dec_v3;
 {
     my $topic = 'array';
     my $args  = {
-        payload     => [ [1..5], ['a'..'z'], [1.23, 4.56, 7.89], [ [qw/ i don't know man make a quote put a quote/] ] ],
+        payload     => [
+                          # Simple arrays of different types
+                          [1..5], ['a'..'z'], [1.23, 4.56, 7.89],
+                          # Multi-dimensional arrays
+                          [ [qw/ i don't know man make a quote put a quote/] ], [ [ [0,0,0], [] ], [ 11,[ 1,11,111 ] ] ],
+                      ],
         comparator  => '==',
         topic       => $topic,
     };
     cover($topic, $args);
 }
 
+{
+    my $topic = 'hash';
+    my $args  = {
+        payload     => [ { one => 1 }, { one => [ 2,3 ] } ],
+        comparator  => '==',
+        topic       => $topic,
+    };
+    cover($topic, $args);
+}
 
 sub cover {
     my ($topic, $args) = @_;

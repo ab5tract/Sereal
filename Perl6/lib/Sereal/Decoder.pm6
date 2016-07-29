@@ -85,6 +85,21 @@ method tag-to-func($type-name) {
          @ret;
        },
 
+       "HASH"           => -> $r, $t {
+         $r.pos++;
+         my $size = read_varint($r);
+         my %hash;
+
+         for ^$size {
+           my $key = self.process-tag;
+           my $val = self.process-tag;
+
+           %hash{$key} = $val;
+         }
+
+         %hash;
+       },
+
        "REFN"           => -> $r, $t {
            $r.pos++;
            self.process-tag;
