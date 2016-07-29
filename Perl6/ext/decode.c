@@ -116,5 +116,6 @@ long double peek_long_double(serial_t *state) {
 // read_string doesn't really need a peek equivalent
 void read_string(serial_t *state, uint32_t len, unsigned char *string) {
   memcpy(string, &state->buf[state->pos], len);
+  state->pos += len;
   return;
 }
