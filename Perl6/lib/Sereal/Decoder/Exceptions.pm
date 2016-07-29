@@ -17,3 +17,11 @@ class X::UTF8EncodedBlob is Exception is export {
         self.bless :$message;
     }
 };
+
+class X::TruncatedBlob is Exception is export {
+    has $.message;
+    method new($type, $needed, $got) {
+        my $message = "The Sereal packet appears to be malformed - type: $type needs $needed bytes but got $got";
+        self.bless :$message;
+    }
+}

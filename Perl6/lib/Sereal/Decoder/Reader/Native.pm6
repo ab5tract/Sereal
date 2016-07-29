@@ -9,6 +9,7 @@ class Sereal::Reader is repr('CStruct') is export {
 }
 
 sub decode(Buf $buf, uint64 $length) returns Sereal::Reader is native('bufeater') is export { * }
+sub move_cursor(Sereal::Reader $reader, uint32 $amount) is native('bufeater') is export { * }
 
 sub peek_u8     (Sereal::Reader $reader) returns uint8  is native('bufeater') is export { * }
 sub read_u8     (Sereal::Reader $reader) returns uint8  is native('bufeater') is export { * }

@@ -28,6 +28,10 @@ void destroy_serial(serial_t *serial) {
   free(serial);
 };
 
+void move_cursor(serial_t *state, uint32_t bytes) {
+    state->pos = state->pos + bytes;
+}
+
 uint32_t peek_uint32(serial_t *state) {
     uint32_t val = 0;
     val = (uint32_t) state->buf[state->pos];

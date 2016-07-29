@@ -7,6 +7,8 @@
 extern serial_t *init_serial();
 extern serial_t *decode(unsigned char *buf, unsigned int len);
 
+extern void move_cursor(serial_t *state, uint32_t bytes);
+
 // complex readers
 extern uint64_t read_varint(serial_t *state);
 extern int64_t read_zigzag_varint(serial_t *state);

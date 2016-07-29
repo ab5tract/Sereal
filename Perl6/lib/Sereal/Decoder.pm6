@@ -2,15 +2,13 @@ unit class Sereal::Decoder;
 
 use Sereal::Decoder::Constants;
 use Sereal::Decoder::Validation;
+use Sereal::Decoder::Exceptions;
 
+# Could one day make it pluggable for Pure, but let's get the hybrid working first
 need Sereal::Decoder::Reader::Native;
-
 import Sereal::Decoder::Reader::Native;
-#XXX: make the distinction between Native/Pure a compile time one
-#       we can default to Native, thanks to the late binding of the
-#       NativeCall routines. this means we could emit a specific exception
-#       in the case of a missing bufeater.so telling them to use the P6SEREAL_PURE=1
-#       flag.
+
+
 
 has Sereal::Reader $.reader;
 
@@ -31,17 +29,17 @@ my %tag-to-func = (
    "POS"            => -> $r,$t { read_u8($r) },
    "NEG"            => -> $r,$t { read_u8($r) - 32 },
 
-   "TRUE"           => -> $r,$t { $r.pos++; True },
-   "FALSE"          => -> $r,$t { $r.pos++; False },
+   "TRUE"           => -> $r,$t { move_cursor($r, 1); True },
+   "FALSE"          => -> $r,$t { move_cursor($r, 1); False },
 
-   "FLOAT"          => -> $r,$t { $r.pos++; read_float($r) },
-   "DOUBLE"         => -> $r,$t { $r.pos++; read_double($r) },
+   "FLOAT"          => -> $r,$t { move_cursor($r, 1); read_float($r) },
+   "DOUBLE"         => -> $r,$t { move_cursor($r, 1); read_double($r) },
 
-   "VARINT"         => -> $r,$t { $r.pos++; read_varint($r) },
-   "ZIGZAG"         => -> $r,$t { $r.pos++; read_zigzag_varint($r) },
+   "VARINT"         => -> $r,$t { move_cursor($r, 1); read_varint($r) },
+   "ZIGZAG"         => -> $r,$t { move_cursor($r, 1); read_zigzag_varint($r) },
 
    "SHORT_BINARY"   => -> $r,$t {
-       $r.pos++;
+       move_cursor($r, 1);
        my $length = $t<masked_val>;
        my $latin-buf = Buf.new(0 xx $length);
        read_string($r, $length, $latin-buf);
@@ -49,9 +47,12 @@ my %tag-to-func = (
    },
 
    "BINARY"         => -> $r, $t {
-       $r.pos++;
+       move_cursor($r, 1);
        my $length = read_varint($r);
-       dd $length;
+    #  The exception below is not possible ATM due to the +$r.buf call.
+    #  $r.buf is just a Pointer in the struct definition, so we need to
+    #  think through the design of exception handling as a whole.
+    #    die X::TruncatedBlob.new($t<type_name>, $length, +$r.buf);
        my $latin-buf = Buf.new(0 xx $length);
        read_string($r, $length, $latin-buf);
        $latin-buf.decode('latin-1');

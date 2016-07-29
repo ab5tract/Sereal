@@ -34,7 +34,8 @@ for ($?FILE.IO.dirname ~ "/corpus").IO.dir -> $topic-path {
     subtest {
         my $info = from-json(($topic-path ~ '/info.json').IO.slurp);
         my $payload = $info<payload>;
-        my @cases =  $topic-path.IO.dir.grep(/'srl'/).sort({ ($^a.basename ~~ /(\d+)/) <=> ($^b.basename ~~ /(\d+)/) });
+        my @cases =  $topic-path.IO.dir.grep(/'srl'/)\
+                        .sort({ ($^a.basename ~~ /(\d+)/) <=> ($^b.basename ~~ /(\d+)/) });
         for @cases.kv -> $idx, $testcase {
             my $buf = $testcase.slurp :bin;
             my $tag_result = Sereal::Decoder.new(:$buf).process-tag;
