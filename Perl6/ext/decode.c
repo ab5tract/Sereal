@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 // // in case we want to use memcpy
-// #include <string.h>
+#include <string.h>
 
 #include "decode.h"
 
@@ -84,19 +84,9 @@ double read_double(serial_t *state) {
 };
 
 double peek_double(serial_t *state) {
-    // UNION APPROACH
-    union {
-        double d;
-        char bytes[sizeof(double)];
-    } val;
-    for (int i = 0; i < sizeof(double); i++) val.bytes[i] = state->buf[state->pos+i];
-    return val.d;
-
-    // // memcpy APPROACH
-    // double val = 0;
-    // unsigned char *buf = &state->buf[state->pos];
-    // memcpy(&val, buf, sizeof(double));
-    // return val;
+  double val = 0;
+  memcpy(&val, &state->buf[state->pos], sizeof(double));
+  return val;
 };
 
 float read_float(serial_t *state) {
@@ -106,12 +96,9 @@ float read_float(serial_t *state) {
 };
 
 float peek_float(serial_t *state) {
-  union {
-      float f;
-      char bytes[sizeof(float)];
-  } val;
-  for (int i = 0; i < sizeof(float); i++) val.bytes[i] = state->buf[state->pos+i];
-  return val.f;
+  float val;
+  memcpy(&val, &state->buf[state->pos], sizeof(float));
+  return val;
 };
 
 long double read_long_double(serial_t *state) {
@@ -121,18 +108,13 @@ long double read_long_double(serial_t *state) {
 };
 
 long double peek_long_double(serial_t *state) {
-  union {
-      long double ld;
-      char bytes[sizeof(long double)];
-  } val;
-  for (int i = 0; i < sizeof(long double); i++) val.bytes[i] = state->buf[state->pos+i];
-  return val.ld;
+  long double val;
+  memcpy(&val, &state->buf[state->pos], sizeof(long double));  
+  return val;
 };
 
 // read_string doesn't really need a peek equivalent
 void read_string(serial_t *state, uint32_t len, unsigned char *string) {
-    for (int p=0; p <= len; p++) {
-        string[p] = read_u8(state);
-    }
-    return;
+  memcpy(string, &state->buf[state->pos], len);
+  return;
 }
