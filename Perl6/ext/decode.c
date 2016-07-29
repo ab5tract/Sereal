@@ -93,7 +93,7 @@ float read_float(serial_t *state) {
 
 float peek_float(serial_t *state) {
   float val;
-  memcpy(&val, &state->buf[state->pos], sizeof(double));
+  memcpy(&val, &state->buf[state->pos], sizeof(float));
   return val;
 };
 
