@@ -98,7 +98,7 @@ my @decoders = $dec_v3;
 {
     my $topic = 'array';
     my $args  = {
-        payload     => [ [1..5], ['a'..'z'], [1.23, 4.56, 7.89] ],
+        payload     => [ [1..5], ['a'..'z'], [1.23, 4.56, 7.89], [ [qw/ i don't know man make a quote put a quote/] ] ],
         comparator  => '==',
         topic       => $topic,
     };

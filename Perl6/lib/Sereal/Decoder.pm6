@@ -63,15 +63,27 @@ method tag-to-func($type-name) {
 
        "ARRAY"          => -> $r, $t {
          $r.pos++;
-         my $count = read_varint($r);
+         my $size = read_varint($r);
          my @ret;
 
-         for ^$count {
+         for ^$size {
              push @ret, self.process-tag;
          }
 
          @ret;
      },
+
+       "ARRAYREF"         => -> $r, $t {
+         $r.pos++;
+         my $size = $t<masked_val>;
+         my @ret;
+
+         for ^$size {
+           push @ret, self.process-tag;
+         }
+
+         @ret;
+       },
 
        "REFN"           => -> $r, $t {
            $r.pos++;
@@ -87,7 +99,7 @@ method process-tag {
     if $type_func ~~ Callable {
         return $type_func($!reader, $tag);
     } else {
-        die $tag<type_name> ~ " is NYI";
+        die "$tag<type_name> is NYI -- specific seen tag: {$tag.perl}";
     }
 }
 
