@@ -29,17 +29,17 @@ my %tag-to-func = (
    "POS"            => -> $r,$t { read_u8($r) },
    "NEG"            => -> $r,$t { read_u8($r) - 32 },
 
-   "TRUE"           => -> $r,$t { move_cursor($r, 1); True },
-   "FALSE"          => -> $r,$t { move_cursor($r, 1); False },
+   "TRUE"           => -> $r,$t { $r.pos++; True },
+   "FALSE"          => -> $r,$t { $r.pos++; False },
 
-   "FLOAT"          => -> $r,$t { move_cursor($r, 1); read_float($r) },
-   "DOUBLE"         => -> $r,$t { move_cursor($r, 1); read_double($r) },
+   "FLOAT"          => -> $r,$t { $r.pos++; read_float($r) },
+   "DOUBLE"         => -> $r,$t { $r.pos++; read_double($r) },
 
-   "VARINT"         => -> $r,$t { move_cursor($r, 1); read_varint($r) },
-   "ZIGZAG"         => -> $r,$t { move_cursor($r, 1); read_zigzag_varint($r) },
+   "VARINT"         => -> $r,$t { $r.pos++; read_varint($r) },
+   "ZIGZAG"         => -> $r,$t { $r.pos++; read_zigzag_varint($r) },
 
    "SHORT_BINARY"   => -> $r,$t {
-       move_cursor($r, 1);
+       $r.pos++;
        my $length = $t<masked_val>;
        my $latin-buf = Buf.new(0 xx $length);
        read_string($r, $length, $latin-buf);
@@ -47,7 +47,7 @@ my %tag-to-func = (
    },
 
    "BINARY"         => -> $r, $t {
-       move_cursor($r, 1);
+       $r.pos++;
        my $length = read_varint($r);
     #  The exception below is not possible ATM due to the +$r.buf call.
     #  $r.buf is just a Pointer in the struct definition, so we need to
