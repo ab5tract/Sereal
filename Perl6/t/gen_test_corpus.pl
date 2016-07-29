@@ -73,8 +73,16 @@ my @decoders = $dec_v3;
         topic       => $topic,
     };
     cover($topic, $args);
-    # cover_versions($name, $payload);
-    # verify_versions($name, $payload);
+}
+
+{
+    my $topic = 'binary';
+    my $args = {
+        payload     => [ 'For the benefit of Mr Kite.', 'Somewhere a rainbow had a baby and started this whole mess to begin with.' ],
+        comparator  => 'eq',
+        topic       => $topic,
+    };
+    cover($topic, $args);
 }
 
 {
@@ -85,9 +93,6 @@ my @decoders = $dec_v3;
         topic       => $topic,
     };
     cover($topic, $args);
-    # cover($topic, $payload);
-    # cover_versions($name, $payload);
-    # verify_versions($name, $payload);
 }
 
 sub cover {

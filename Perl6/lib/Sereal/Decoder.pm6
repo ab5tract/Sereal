@@ -47,6 +47,15 @@ my %tag-to-func = (
        read_string($r, $length, $latin-buf);
        $latin-buf.decode('latin-1');
    },
+
+   "BINARY"         => -> $r, $t {
+       $r.pos++;
+       my $length = read_varint($r);
+       dd $length;
+       my $latin-buf = Buf.new(0 xx $length);
+       read_string($r, $length, $latin-buf);
+       $latin-buf.decode('latin-1');
+   },
 );
 
 method process-tag {
