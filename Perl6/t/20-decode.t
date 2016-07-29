@@ -28,6 +28,8 @@ subtest {
 
 use JSON::Tiny;
 use MONKEY-SEE-NO-EVAL;
+# parallelizing this is pretty funny, as TAP is not really up for the challenge
+# without using something in the middle to order the results.
 for ($?FILE.IO.dirname ~ "/corpus").IO.dir -> $topic-path {
     my $topic = $topic-path.IO.basename;
     say "$topic in $topic-path";
@@ -40,7 +42,7 @@ for ($?FILE.IO.dirname ~ "/corpus").IO.dir -> $topic-path {
             my $buf = $testcase.slurp :bin;
             my $tag_result = Sereal::Decoder.new(:$buf).process-tag;
 
-            ok $tag_result ~~ $payload[$idx], "{$topic.uc} -- got: {$tag_result}\texpected: {$payload[$idx]}";
+            ok $tag_result ~~ $payload[$idx], "{$topic.uc} -- got: {$tag_result.perl}\texpected: {$payload[$idx].perl}";
         }
     }, "Sereal::Decoder processes SHORT_BINARY tags";
 }

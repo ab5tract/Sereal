@@ -5,14 +5,10 @@ use lib 'lib';
 
 plan 3;
 
-my $srl-foo-v1 = 't/corpus/srl.foo.v1'.IO.slurp :bin;
-my $srl-foo-v2 = 't/corpus/srl.foo.v2'.IO.slurp :bin;
-my $srl-foo-v3 = 't/corpus/srl.foo.v3'.IO.slurp :bin;
+my $srl-foo-v3 = 't/corpus/short_binary/srl.short_binary.1.v3'.IO.slurp :bin;
 
 subtest {
     use Sereal::Decoder::Validation;
-    ok looks-like-sereal($srl-foo-v1), "srl.foo.v1 looks-like-sereal after it was slurped in";
-    ok looks-like-sereal($srl-foo-v2), "srl.foo.v1 looks-like-sereal after it was slurped in";
     ok looks-like-sereal($srl-foo-v3), "srl.foo.v3 looks-like-sereal after it was slurped in";
 }, "srl.foo.v* files all pass looks-like-sereal";
 
@@ -33,12 +29,6 @@ subtest {
 
 subtest {
     use Sereal::Decoder::Validation;
-    my %header-v1 = validate-header-version($srl-foo-v1);
-    ok %header-v1<version> == 1, "validate-header-version returns 1 for srl.foo.v1";
-
-    my %header-v2 = validate-header-version($srl-foo-v2);
-    ok %header-v2<version> == 2, "validate-header-version returns 2 for srl.foo.v2";
-
     my %header-v3 = validate-header-version($srl-foo-v3);
     ok %header-v3<version> == 3, "validate-header-version returns 3 for srl.foo.v3";
 }, "validate-header-version returns the expected data structures";
