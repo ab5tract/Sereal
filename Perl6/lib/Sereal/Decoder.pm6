@@ -35,8 +35,8 @@ method tag-to-func($type-name) {
        "TRUE"           => -> $r,$t { $r.pos++; True },
        "FALSE"          => -> $r,$t { $r.pos++; False },
 
-       "FLOAT"          => -> $r,$t { $r.pos++; read_float($r) },
-       "DOUBLE"         => -> $r,$t { $r.pos++; read_double($r) },
+       "FLOAT"          => -> $r,$t { $r.pos++; read_float($r).Str.Rat },
+       "DOUBLE"         => -> $r,$t { $r.pos++; read_double($r).Str.Rat },
 
        "VARINT"         => -> $r,$t { $r.pos++; read_varint($r) },
        "ZIGZAG"         => -> $r,$t { $r.pos++; read_zigzag_varint($r) },

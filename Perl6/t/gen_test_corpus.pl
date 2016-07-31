@@ -104,7 +104,8 @@ my @decoders = $dec_v3;
                           # Multi-dimensional arrays
                           [ [qw/ i don't know man make a quote put a quote/] ], [ [ [0,0,0], [] ], [ 11,[ 1,11,111 ] ] ],
                       ],
-        comparator  => '==',
+        # comparator  => '~~',
+        test_op     => 'is-deeply',
         topic       => $topic,
     };
     cover($topic, $args);
@@ -114,7 +115,7 @@ my @decoders = $dec_v3;
     my $topic = 'hash';
     my $args  = {
         payload     => [ { one => 1 }, { one => [ 2,3 ] } ],
-        comparator  => '==',
+        test_op     => 'is-deeply',
         topic       => $topic,
     };
     cover($topic, $args);

@@ -26,7 +26,7 @@ subtest {
   #XXX: Need to harden this subtest with more examples
 }, "Sereal::Decoder processes ZIGZAG VARINT tags";
 
-use JSON::Tiny;
+use JSON::Fast;
 use MONKEY-SEE-NO-EVAL;
 # parallelizing this is pretty funny, as TAP is not really up for the challenge
 # without using something in the middle to order the results.
@@ -42,8 +42,12 @@ for ($?FILE.IO.dirname ~ "/corpus").IO.dir -> $topic-path {
             my $buf = $testcase.slurp :bin;
             my $tag_result = Sereal::Decoder.new(:$buf).process-tag;
 
-            ok do { $tag_result ~~ $payload[$idx] || try $tag_result == $payload[$idx] },
-               "{$topic.uc} -- got: {$tag_result.perl}\texpected: {$payload[$idx].perl}";
+            if $info<test_op> -> $op {
+                "$op \$tag_result, \$payload[\$idx], \"{$topic.uc} (op: $op) -- got: {$tag_result.perl}\texpected: {$payload[$idx].perl}\"".EVAL;
+            } elsif $info<comparator> -> $cmp {
+                cmp-ok $tag_result, $cmp, $payload[$idx],
+                    "{$topic.uc} (cmp: $cmp) -- got: {$tag_result.perl}\texpected: {$payload[$idx].perl}";
+            }
         }
-    }, "Sereal::Decoder processes SHORT_BINARY tags";
+    }, "Sereal::Decoder processes {$topic.uc} tags";
 }
