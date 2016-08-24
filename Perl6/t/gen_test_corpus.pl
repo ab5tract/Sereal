@@ -48,7 +48,6 @@ my @decoders = $dec_v3;
     my $topic = 'pos';
     my $args = {
         payload     => [ 0..15 ],
-        comparator  => '==',
         topic       => $topic,
     };
     cover($topic, $args);
@@ -58,7 +57,6 @@ my @decoders = $dec_v3;
     my $topic = 'neg';
     my $args = {
         payload     => [ 16..31 ],
-        comparator  => '==',
         topic       => $topic,
     };
     cover($topic, $args);
@@ -69,7 +67,6 @@ my @decoders = $dec_v3;
     my $topic = 'short_binary';
     my $args = {
         payload     => [ 'sereal', 'fu', 'wu', 'camelia' ],
-        comparator  => 'eq',
         topic       => $topic,
     };
     cover($topic, $args);
@@ -79,7 +76,6 @@ my @decoders = $dec_v3;
     my $topic = 'binary';
     my $args = {
         payload     => [ 'For the benefit of Mr Kite.', 'Somewhere a rainbow had a baby and started this whole mess to begin with.' ],
-        comparator  => 'eq',
         topic       => $topic,
     };
     cover($topic, $args);
@@ -89,7 +85,6 @@ my @decoders = $dec_v3;
     my $topic = 'double';
     my $args  = {
         payload     => [ 0.42, 23.337, 42.42424242, ], # can't go too far # 42.42424242424242424242 ],
-        comparator  => '==',
         topic       => $topic,
     };
     cover($topic, $args);
@@ -105,7 +100,6 @@ my @decoders = $dec_v3;
                           [ [qw/ i don't know man make a quote put a quote/] ], [ [ [0,0,0], [] ], [ 11,[ 1,11,111 ] ] ],
                       ],
         # comparator  => '~~',
-        test_op     => 'is-deeply',
         topic       => $topic,
     };
     cover($topic, $args);
@@ -115,7 +109,6 @@ my @decoders = $dec_v3;
     my $topic = 'hash';
     my $args  = {
         payload     => [ { one => 1 }, { one => [ 2,3 ] } ],
-        test_op     => 'is-deeply',
         topic       => $topic,
     };
     cover($topic, $args);
@@ -123,7 +116,6 @@ my @decoders = $dec_v3;
 
 sub cover {
     my ($topic, $args) = @_;
-
 
     my $ctr;
     foreach my $testcase (@{ $args->{payload} }) {
