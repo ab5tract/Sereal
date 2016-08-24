@@ -12,7 +12,7 @@ subtest {
   my Buf $buf = Buf.new(0b00100000,0b10101100,0b00000010);
   my $reader = Sereal::Decoder.new(:$buf, :naked);
   my $tag_result = $reader.process-tag;
-  ok $tag_result == 300, "Varint processed: $tag_result";
+  is $tag_result, 300, "Varint processed: $tag_result == 300";
 
   #XXX: Need to harden this subtest with more examples
 }, "Sereal::Decoder processes VARINT tags";
@@ -32,22 +32,18 @@ use MONKEY-SEE-NO-EVAL;
 # without using something in the middle to order the results.
 for ($?FILE.IO.dirname ~ "/corpus").IO.dir -> $topic-path {
     my $topic = $topic-path.IO.basename;
-    say "$topic in $topic-path";
+    say "Testing: $topic in $topic-path";
     subtest {
         my $info = from-json(($topic-path ~ '/info.json').IO.slurp);
         my $payload = $info<payload>;
-        my @cases =  $topic-path.IO.dir.grep(/'srl'/)\
-                        .sort({ ($^a.basename ~~ /(\d+)/) <=> ($^b.basename ~~ /(\d+)/) });
+        # get srl blobs and sort them
+        my @cases =  $topic-path.IO.dir.grep(/'srl'/).sort({ ($^a.basename ~~ /(\d+)/) <=> ($^b.basename ~~ /(\d+)/) });
         for @cases.kv -> $idx, $testcase {
             my $buf = $testcase.slurp :bin;
             my $tag_result = Sereal::Decoder.new(:$buf).process-tag;
 
-            if $info<test_op> -> $op {
-                "$op \$tag_result, \$payload[\$idx], \"{$topic.uc} (op: $op) -- got: {$tag_result.perl}\texpected: {$payload[$idx].perl}\"".EVAL;
-            } elsif $info<comparator> -> $cmp {
-                cmp-ok $tag_result, $cmp, $payload[$idx],
-                    "{$topic.uc} (cmp: $cmp) -- got: {$tag_result.perl}\texpected: {$payload[$idx].perl}";
-            }
+            is $tag_result, $payload[$idx],
+                 "{$topic.uc} -- got: {$tag_result.perl}\texpected: {$payload[$idx].perl}";
         }
     }, "Sereal::Decoder processes {$topic.uc} tags";
 }

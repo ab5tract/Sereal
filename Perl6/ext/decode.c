@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-// // in case we want to use memcpy
 #include <string.h>
 
 #include "decode.h"
-
 
 serial_t *decode(unsigned char *buf, unsigned int len) {
   serial_t *serial = init_serial();
@@ -109,7 +107,7 @@ long double read_long_double(serial_t *state) {
 
 long double peek_long_double(serial_t *state) {
   long double val;
-  memcpy(&val, &state->buf[state->pos], sizeof(long double));  
+  memcpy(&val, &state->buf[state->pos], sizeof(long double));
   return val;
 };
 

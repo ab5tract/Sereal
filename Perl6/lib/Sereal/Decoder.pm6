@@ -26,7 +26,6 @@ multi submethod BUILD(:$buf!) {
     $!reader = %header<reader>;
 }
 
-
 method tag-to-func($type-name) {
     my %tag-to-func = %(
        "POS"            => -> $r,$t { read_u8($r) },
@@ -35,8 +34,8 @@ method tag-to-func($type-name) {
        "TRUE"           => -> $r,$t { $r.pos++; True },
        "FALSE"          => -> $r,$t { $r.pos++; False },
 
-       "FLOAT"          => -> $r,$t { $r.pos++; read_float($r).Str.Rat },
-       "DOUBLE"         => -> $r,$t { $r.pos++; read_double($r).Str.Rat },
+       "FLOAT"          => -> $r,$t { $r.pos++; read_float($r) },
+       "DOUBLE"         => -> $r,$t { $r.pos++; read_double($r) },
 
        "VARINT"         => -> $r,$t { $r.pos++; read_varint($r) },
        "ZIGZAG"         => -> $r,$t { $r.pos++; read_zigzag_varint($r) },
